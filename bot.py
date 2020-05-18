@@ -18,7 +18,7 @@ GENERAL_CHANNEL_ID = 698571675754692752
 TEST_CHANNEL_ID = 207481917975560192
 MEMBER_UPDATE_COUNT = 0
 GAME_MODE = False
-stats_brief = '\n {}stats  : for server stats\n {}stats <username> : for user stats'.format(COMMAND_PREFIX, COMMAND_PREFIX)
+stats_brief = 'Shows random stats about server, {}stats <username> for user'.format(COMMAND_PREFIX)
 
 # Messages/Quotes
 WAR_CRY_LIST = ['LET\'S GO BROS!',
@@ -60,7 +60,7 @@ async def on_message(message):
     full_message = message.content.lower()
     if 'bro' in full_message:
         print("Sending Bro message")
-        await message.channel.send("Bro", tts=True)
+        await message.channel.send("Bro", tts=False)
 
     if 'hello' in full_message or 'hi ' in full_message:
         print("Sending hello message")
@@ -82,14 +82,16 @@ async def on_message(message):
         print("Sending online message")
         await message.channel.send("I'm online too Bro")
 
+    '''
     if 'stream' in full_message:  # or 'play' in full_message and '-play' not in full_message:
         print("Sending stream/play message")
         await message.channel.send("***STREAM STREAM STREAM!***")
         await message.channel.send(random.choice(WAR_CRY_LIST), tts=True)
+    '''
 
     if 'stop bro' in full_message or 'shut up bro' in full_message:
         print("Sending sorry message")
-        await message.channel.send("Sorry bro *cries in the corner*!")
+        await message.channel.send("Sorry bro *cries in the corner*")
 
     global GAME_MODE
     if GAME_MODE:
@@ -127,7 +129,7 @@ async def on_message(message):
             print(e)
     await client.process_commands(message)
 
-
+'''
 @client.event
 async def on_member_update(before, after):
     global MEMBER_UPDATE_COUNT
@@ -141,7 +143,7 @@ async def on_member_update(before, after):
 
     if MEMBER_UPDATE_COUNT == 1:
         MEMBER_UPDATE_COUNT = 0
-
+'''
 
 ''' -------Command functionality------- '''
 
@@ -294,6 +296,23 @@ async def game(ctx, arg=None):
         await ctx.send('```Usage:\n'
                        '{}game on : to activate game mode\n'
                        '{}game off : to deactivate game mode\n```'.format(COMMAND_PREFIX, COMMAND_PREFIX))
+
+
+@client.command(brief='')
+async def switchon(ctx):
+    print("Powering on PC")
+    if ctx.message.author.name == "Diego Delavega":
+        session = aiohttp.ClientSession()
+        data = {"action": "on"}
+        ''' read API endpoint from file '''
+        with open('token') as f:
+            pc_api = f.read()
+        res = await session.post(pc_api, data=json.dumps(data), headers={'content-type': 'application/json'})
+        print(res)
+        await session.close()
+        await ctx.send('```Done```')
+    else:
+        await ctx.send('```You don\'t have the permission!```')
 
 client.run(TOKEN)
 
