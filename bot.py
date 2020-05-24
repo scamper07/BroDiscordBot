@@ -1,12 +1,13 @@
-import json
-
 import discord
 from discord.ext import commands
+from discord.ext.commands import MemberConverter
 
 from collections import Counter
 from pyKey import press
+
 import random
 import aiohttp
+import json
 
 ''' read Bot Token from file '''
 with open('token') as f:
@@ -19,6 +20,7 @@ TEST_CHANNEL_ID = 207481917975560192
 MEMBER_UPDATE_COUNT = 0
 GAME_MODE = False
 stats_brief = 'Shows random stats about server, {}stats <username> for user'.format(COMMAND_PREFIX)
+SKRT_CMD = "!type"
 
 # Messages/Quotes
 WAR_CRY_LIST = ['LET\'S GO BROS!',
@@ -92,6 +94,9 @@ async def on_message(message):
     if 'stop bro' in full_message or 'shut up bro' in full_message:
         print("Sending sorry message")
         await message.channel.send("Sorry bro *cries in the corner*")
+
+    #if full_message.startswith(SKRT_CMD):
+    #    print(full_message[len(SKRT_CMD)+1:])
 
     global GAME_MODE
     if GAME_MODE:
@@ -201,21 +206,30 @@ async def stats(ctx, user: discord.Member = None):
 
         top = authors_count.most_common(1)
         print("Most talkative bro: {} talked {} times".format(top[0][0], top[0][1]))
-        value = str(top[0][0])+" ("+str(top[0][1])+" messages)"
+        value = str(top[0][0] if ctx.guild.get_member_named(top[0][0]) is None else ctx.guild.get_member_named(top[0][0]).mention) + " (" + str(top[0][1]) + " messages)"
         print(value)
         embed.add_field(name="Most Talkative Bro", value=value, inline=False)
 
         low = min(authors_count, key=authors_count.get)
         print("Least talkative bro: {} talked {} time(s)".format(low, authors_count[low]))
-        value = str(low) + " (" + str(authors_count[low]) + " messages)"
+        value = str(low if ctx.guild.get_member_named(low) is None else ctx.guild.get_member_named(low).mention) + " (" + str(authors_count[low]) + " messages)"
         embed.add_field(name="Least Talkative Bro", value=value, inline=True)
+
+        top_authors = ""
+        if len(authors_count) >= 5:
+            print("Top 5 talkative Bros")
+            for author, message_count in authors_count.most_common(5):
+                print("{}: {} times".format(author, message_count))
+                top_authors += str(author if ctx.guild.get_member_named(author) is None else ctx.guild.get_member_named(author).mention) + " (" + str(message_count) + " messages) \n "
+
+        embed.add_field(name="Top 5 Talkative Bros", value=top_authors, inline=False)
 
         top_string = ""
         if len(word_count) >= 5:
             print("Top five words used here are:")
             for word, count in word_count.most_common(5):
                 print("{}: {} times".format(word, count))
-                top_string += str(word) + "(" + str(count) + ") | "
+                top_string += str(word) + " (" + str(count) + " times) \n "
 
         embed.add_field(name="Top 5 words used here", value=top_string, inline=False)
         print("*****************************")
@@ -298,7 +312,7 @@ async def game(ctx, arg=None):
                        '{}game off : to deactivate game mode\n```'.format(COMMAND_PREFIX, COMMAND_PREFIX))
 
 
-@client.command(brief='')
+@client.command(brief='Turns on my Master\'s PC')
 async def switchon(ctx):
     print("Powering on PC")
     if ctx.message.author.name == "Diego Delavega":
@@ -306,13 +320,21 @@ async def switchon(ctx):
         data = {"action": "on"}
         ''' read API endpoint from file '''
         with open('token') as f:
-            pc_api = f.read()
-        res = await session.post(pc_api, data=json.dumps(data), headers={'content-type': 'application/json'})
+            pc_api = f.read().strip()
+        res = await session.post("http://65ea54ef.ap.ngrok.io", data=json.dumps(data), headers={'content-type': 'application/json'})
         print(res)
         await session.close()
         await ctx.send('```Done```')
     else:
-        await ctx.send('```You don\'t have the permission!```')
+        await ctx.send('```Only my master can use this command.```')
+
+
+@client.command(brief='', hidden=True)
+async def post(ctx, *args):
+    message = ' '.join(args)
+    print("{} {}".format(len(args), message))
+    channel = client.get_channel(GENERAL_CHANNEL_ID)
+    await channel.send(message)
 
 client.run(TOKEN)
 
