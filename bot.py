@@ -161,11 +161,12 @@ async def intro(ctx):
 
 @client.command(brief=stats_brief, description='Shows stats for server or members')
 async def stats(ctx, user: discord.Member = None):
+    await ctx.send("Analyzing... Please wait. This might take sometime", delete_after=5)
     if not user:
         embed = discord.Embed(
             title="Stats",
             description="Showing random stats for this server",
-            colour=discord.Color.teal()
+            colour=discord.Color.blue()
         )
         embed.set_footer(text="Hope that was helpful, bye!")
         embed.set_author(name="Bro Bot", icon_url=client.user.avatar_url)
@@ -174,7 +175,7 @@ async def stats(ctx, user: discord.Member = None):
         server = ctx.message.author.guild
         server_name = server.name
         server_owner = server.owner.mention
-        server_create_date = server.created_at.__format__('%d/%B/%Y @%H:%M:%S')
+        server_create_date = server.created_at.__format__('%d/%B/%Y')
         server_member_count = server.member_count
         print("*****************************")
         print("Server name: {}\nserver owner: {}\nserver created at: {}\nTotal number of members: {}".format(server_name,
@@ -185,7 +186,7 @@ async def stats(ctx, user: discord.Member = None):
         embed.add_field(name="Server Name", value=server_name, inline=False)
         embed.add_field(name="Server Owner", value=server_owner, inline=True)
         embed.add_field(name="Server Create Date", value=server_create_date, inline=True)
-        embed.add_field(name="Total Members", value=server_member_count, inline=False)
+        embed.add_field(name="Total Members", value=server_member_count, inline=True)
 
         # channel = client.get_channel(GENERAL_CHANNEL_ID)
         # messages = await channel.history(limit=None).flatten()
@@ -200,9 +201,6 @@ async def stats(ctx, user: discord.Member = None):
             authors_count.update({message.author.name: 1})
             message_list += str(message.content).split()
         word_count.update(message_list)
-
-        print("Bro was mentioned {} times!".format(bro_in_message_count))
-        embed.add_field(name="Bro Count", value=str(bro_in_message_count), inline=False)
 
         top = authors_count.most_common(1)
         print("Most talkative bro: {} talked {} times".format(top[0][0], top[0][1]))
@@ -232,8 +230,11 @@ async def stats(ctx, user: discord.Member = None):
                 top_string += str(word) + " (" + str(count) + " times) \n "
 
         embed.add_field(name="Top 5 words used here", value=top_string, inline=False)
+
+        print("Bro was mentioned {} times!".format(bro_in_message_count))
+        embed.add_field(name="Bro Count", value=str(bro_in_message_count), inline=False)
+
         print("*****************************")
-        await ctx.send(embed=embed)
     else:
         embed = discord.Embed(
             title="Stats",
@@ -248,7 +249,7 @@ async def stats(ctx, user: discord.Member = None):
         print("user name: {}".format(user.mention))
         print("user join date: {}".format(user.joined_at.__format__('%d/%B/%Y @%H:%M:%S')))
         embed.add_field(name="User Name", value=user.mention, inline=False)
-        embed.add_field(name="User Join Date", value=user.joined_at.__format__('%d/%B/%Y @%H:%M:%S'), inline=False)
+        embed.add_field(name="User Join Date", value=user.joined_at.__format__('%d/%B/%Y'), inline=False)
 
         messages = await ctx.channel.history(limit=None).flatten()
         message_list = list()
@@ -262,13 +263,13 @@ async def stats(ctx, user: discord.Member = None):
         if len(word_count) >= 5:
             print("Top five words used by {}:".format(user.display_name))
             top_name = "Top 5 words used by {} in this server:".format(user.display_name)
-            for word, count in word_count.most_common(10):
+            for word, count in word_count.most_common(5):
                 print("{}: {} times".format(word, count))
-                top_string += str(word) + "(" + str(count) + ") | "
+                top_string += str(word) + "(" + str(count) + ") \n "
 
             embed.add_field(name=top_name, value=top_string, inline=False)
         print("*****************************")
-        await ctx.send(embed=embed)
+    await ctx.send(embed=embed)
 
 
 @stats.error
