@@ -319,10 +319,9 @@ async def switchon(ctx):
         session = aiohttp.ClientSession()
         data = {"action": "on"}
         ''' read API endpoint from file '''
-        with open('token') as f:
+        with open('api') as f:
             pc_api = f.read().strip()
-        res = await session.post("http://65ea54ef.ap.ngrok.io", data=json.dumps(data), headers={'content-type': 'application/json'})
-        print(res)
+        res = await session.post(pc_api, data=json.dumps(data), headers={'content-type': 'application/json'})
         await session.close()
         await ctx.send('```Done```')
     else:
