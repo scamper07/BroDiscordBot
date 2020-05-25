@@ -339,5 +339,23 @@ async def post(ctx, *args):
     channel = client.get_channel(GENERAL_CHANNEL_ID)
     await channel.send(message)
 
+
+@client.command(brief='Bro gives life advices!')
+async def advice(ctx):
+    print("advice")
+    wait_message = await ctx.send("Let me think...")
+    async with ctx.typing():
+        try:
+            session = aiohttp.ClientSession()
+            async with session.get("https://api.adviceslip.com/advice") as resp:
+                data = await resp.read()
+            json_response = json.loads(data)
+            await session.close()
+            await wait_message.delete()
+            await ctx.send('*\"{}\"*'.format(json_response['slip']['advice']))
+        except Exception as e:
+            print(e)
+            await ctx.send('Sorry can\'t think of anything')
+
 client.run(TOKEN)
 
