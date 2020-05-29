@@ -3,3 +3,5 @@
 /venv/
 /messages_history.txt
 /api
+/twitch_client_id
+/twitch_app_access
