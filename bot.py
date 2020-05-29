@@ -1,13 +1,20 @@
 import discord
 from discord.ext import commands
-
 from collections import Counter
 from pyKey import press
-
 import random
 import aiohttp
 import json
 import asyncio
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
+''' Initialize logging '''
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = TimedRotatingFileHandler(filename='discord.log', when="midnight", backupCount=5)
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s', datefmt='%d-%b-%y %H:%M:%S'))
+logger.addHandler(handler)
 
 ''' read Bot Token from file '''
 with open('token') as f:
@@ -50,9 +57,7 @@ async def on_ready():
     # activity = discord.Activity(name='Call of Duty\N{REGISTERED SIGN}: Modern Warfare\N{REGISTERED SIGN}',
     # type=discord.ActivityType.playing)
     await client.change_presence(activity=activity)
-
-
-    print("Bot is online!")
+    logger.debug("Bot is online!")
 
 
 @client.event
@@ -62,38 +67,38 @@ async def on_message(message):
         return
     full_message = message.content.lower()
     if 'bro' in full_message:
-        print("Sending Bro message")
+        logging.debug("Sending Bro message")
         await message.channel.send("Bro", tts=False)
 
     if 'hello' in full_message or 'hi ' in full_message:
-        print("Sending hello message")
+        logger.debug("Sending hello message")
         await message.channel.send("Hello {} Bro".format(message.author.mention))
 
     if 'bye' in full_message:
-        print("Sending bye message")
+        logger.debug("Sending bye message")
         await message.channel.send("Bye Bye {} Bro".format(message.author.mention))
 
     if "good morning" in full_message:
-        print("Sending gm message")
+        logger.debug("Sending gm message")
         await message.channel.send("Good morning Bros")
 
     if "good night" in full_message:
-        print("Sending gn message")
+        logger.debug("Sending gn message")
         await message.channel.send("Good night Bros")
 
     if "i\'m online" in full_message or "im online" in full_message:
-        print("Sending online message")
+        logger.debug("Sending online message")
         await message.channel.send("I'm online too Bro")
 
     '''
     if 'stream' in full_message:  # or 'play' in full_message and '-play' not in full_message:
-        print("Sending stream/play message")
+        logger.debug("Sending stream/play message")
         await message.channel.send("***STREAM STREAM STREAM!***")
         await message.channel.send(random.choice(WAR_CRY_LIST), tts=True)
     '''
 
     if 'stop bro' in full_message or 'shut up bro' in full_message:
-        print("Sending sorry message")
+        logger.debug("Sending sorry message")
         await message.channel.send("Sorry bro *cries in the corner*")
 
     global GAME_MODE
@@ -126,10 +131,10 @@ async def on_message(message):
             else:
                 pass
         except ValueError as vale:
-            print(vale)
+            logger.exception(vale)
             await message.channel.send("```Empty/Invalid entry```")
         except Exception as e:
-            print(e)
+            logger.exception(e)
     await client.process_commands(message)
 
 '''
@@ -139,7 +144,7 @@ async def on_member_update(before, after):
     if MEMBER_UPDATE_COUNT == 0:
         if str(after.display_name) == "darshan_ar":
             if str(before.status) == "offline" and str(after.status) == "online":
-                print("JOIN THE VOICE CHANNEL {}!".format(after.display_name))
+                logger.debug("JOIN THE VOICE CHANNEL {}!".format(after.display_name))
                 channel = client.get_channel(GENERAL_CHANNEL_ID)
                 MEMBER_UPDATE_COUNT += 1
                 await channel.send("JOIN THE VOICE CHANNEL {}!".format(after.mention))
@@ -153,7 +158,7 @@ async def on_member_update(before, after):
 
 @client.command(brief='Shows brief introduction of Bro Bot')
 async def intro(ctx):
-    print("Sending intro message")
+    logger.debug("Sending intro message")
     await ctx.send('```Say Bro and I\'ll bro you back```')
 
 
@@ -176,8 +181,8 @@ async def stats(ctx, user: discord.Member = None):
             server_owner = server.owner.mention
             server_create_date = server.created_at.__format__('%d/%B/%Y')
             server_member_count = server.member_count
-            print("*****************************")
-            print("Server name: {}\nserver owner: {}\nserver created at: {}\nTotal number of members: {}".format(server_name,
+            logger.debug("*****************************")
+            logger.debug("Server name: {}\nserver owner: {}\nserver created at: {}\nTotal number of members: {}".format(server_name,
                                                                                                                     server_owner,
                                                                                                                     server_create_date,
                                                                                                                     server_member_count)
@@ -190,6 +195,8 @@ async def stats(ctx, user: discord.Member = None):
             # channel = client.get_channel(GENERAL_CHANNEL_ID)
             # messages = await channel.history(limit=None).flatten()
             messages = await ctx.channel.history(limit=None).flatten()
+            logger.debug("Total messages: {}".format(len(messages)))
+            embed.add_field(name="Total messages", value=str(len(messages)), inline=False)
             authors_count = Counter()
             word_count = Counter()
             message_list = list()
@@ -202,38 +209,38 @@ async def stats(ctx, user: discord.Member = None):
             word_count.update(message_list)
 
             top = authors_count.most_common(1)
-            print("Most talkative bro: {} talked {} times".format(top[0][0], top[0][1]))
+            logger.debug("Most talkative bro: {} talked {} times".format(top[0][0], top[0][1]))
             value = str(top[0][0] if ctx.guild.get_member_named(top[0][0]) is None else ctx.guild.get_member_named(top[0][0]).mention) + " (" + str(top[0][1]) + " messages)"
-            print(value)
+            logger.debug(value)
             embed.add_field(name="Most Talkative Bro", value=value, inline=False)
 
             low = min(authors_count, key=authors_count.get)
-            print("Least talkative bro: {} talked {} time(s)".format(low, authors_count[low]))
+            logger.debug("Least talkative bro: {} talked {} time(s)".format(low, authors_count[low]))
             value = str(low if ctx.guild.get_member_named(low) is None else ctx.guild.get_member_named(low).mention) + " (" + str(authors_count[low]) + " messages)"
             embed.add_field(name="Least Talkative Bro", value=value, inline=True)
 
             top_authors = ""
             if len(authors_count) >= 5:
-                print("Top 5 talkative Bros")
+                logger.debug("Top 5 talkative Bros")
                 for author, message_count in authors_count.most_common(5):
-                    print("{}: {} times".format(author, message_count))
+                    logger.debug("{}: {} times".format(author, message_count))
                     top_authors += str(author if ctx.guild.get_member_named(author) is None else ctx.guild.get_member_named(author).mention) + " (" + str(message_count) + " messages) \n"
 
             embed.add_field(name="Top 5 Talkative Bros", value=top_authors, inline=False)
 
             top_string = ""
             if len(word_count) >= 5:
-                print("Top five words used here are:")
+                logger.debug("Top five words used here are:")
                 for word, count in word_count.most_common(5):
-                    print("{}: {} times".format(word, count))
+                    logger.debug("{}: {} times".format(word, count))
                     top_string += str(word) + " (" + str(count) + " times) \n"
 
             embed.add_field(name="Top 5 words used here", value=top_string, inline=False)
 
-            print("Bro was mentioned {} times!".format(bro_in_message_count))
+            logger.debug("Bro was mentioned {} times!".format(bro_in_message_count))
             embed.add_field(name="Bro Count", value=str(bro_in_message_count), inline=False)
 
-            print("*****************************")
+            logger.debug("*****************************")
         else:
             embed = discord.Embed(
                 title="Stats",
@@ -244,9 +251,9 @@ async def stats(ctx, user: discord.Member = None):
             embed.set_author(name="Bro Bot", icon_url=client.user.avatar_url)
             embed.set_thumbnail(url=user.avatar_url)
 
-            print("*****************************")
-            print("user name: {}".format(user.mention))
-            print("user join date: {}".format(user.joined_at.__format__('%d/%B/%Y @%H:%M:%S')))
+            logger.debug("*****************************")
+            logger.debug("user name: {}".format(user.mention))
+            logger.debug("user join date: {}".format(user.joined_at.__format__('%d/%B/%Y @%H:%M:%S')))
             embed.add_field(name="User Name", value=user.mention, inline=False)
             embed.add_field(name="User Join Date", value=user.joined_at.__format__('%d/%B/%Y'), inline=False)
 
@@ -260,14 +267,14 @@ async def stats(ctx, user: discord.Member = None):
             word_count.update(message_list)
             top_string = ""
             if len(word_count) >= 5:
-                print("Top five words used by {}:".format(user.display_name))
+                logger.debug("Top five words used by {}:".format(user.display_name))
                 top_name = "Top 5 words used by {} in this server:".format(user.display_name)
                 for word, count in word_count.most_common(5):
-                    print("{}: {} times".format(word, count))
+                    logger.debug("{}: {} times".format(word, count))
                     top_string += str(word) + "(" + str(count) + ") \n"
 
                 embed.add_field(name=top_name, value=top_string, inline=False)
-            print("*****************************")
+            logger.debug("*****************************")
 
     await wait_message.delete()
     await ctx.send(embed=embed)
@@ -316,7 +323,7 @@ async def game(ctx, arg=None):
 
 @client.command(brief='Turns on my Master\'s PC')
 async def switchon(ctx):
-    print("Powering on PC")
+    logger.debug("Powering on PC")
     if ctx.message.author.name == "Diego Delavega":
         session = aiohttp.ClientSession()
         data = {"action": "on"}
@@ -333,14 +340,14 @@ async def switchon(ctx):
 @client.command(brief='', hidden=True)
 async def post(ctx, *args):
     message = ' '.join(args)
-    print("{} {}".format(len(args), message))
+    logger.debug("{} {}".format(len(args), message))
     channel = client.get_channel(GENERAL_CHANNEL_ID)
     await channel.send(message)
 
 
 @client.command(brief='Bro gives life advices!')
 async def advice(ctx):
-    print("advice")
+    logger.debug("advice")
     wait_message = await ctx.send("Let me think...")
     async with ctx.typing():
         try:
@@ -352,13 +359,13 @@ async def advice(ctx):
             await wait_message.delete()
             await ctx.send('*\"{}\"*'.format(json_response['slip']['advice']))
         except Exception as e:
-            print(e)
+            logger.exception(e)
             await ctx.send('Sorry can\'t think of anything')
 
 
 @client.command(brief='Bro shares random facts!')
 async def facts(ctx):
-    print("facts")
+    logger.debug("facts")
     wait_message = await ctx.send("One interesting fact coming right up...")
     async with ctx.typing():
         try:
@@ -370,16 +377,16 @@ async def facts(ctx):
             await wait_message.delete()
             await ctx.send("{}".format(json_response['data']))
         except Exception as e:
-            print(e)
+            logger.exception(e)
             await ctx.send('Sorry can\'t think of anything')
 
 
 @client.command(brief='Puts out random xkcd comic!')
 async def xkcd(ctx):
-    print("xkcd")
+    logger.debug("xkcd")
     wait_message = await ctx.send("Comic time...")
     comic_number = random.randint(1, 2310)  # comic number range TODO:get dynamically
-    print(comic_number)
+    logger.debug(comic_number)
     async with ctx.typing():
         try:
             session = aiohttp.ClientSession()
@@ -393,7 +400,7 @@ async def xkcd(ctx):
             embed.set_image(url=json_response['img'])
             await ctx.send(embed=embed)
         except Exception as e:
-            print(e)
+            logger.exception(e)
             await ctx.send('No xkcd for you')
 
 
@@ -427,7 +434,7 @@ async def twitch_live_status():
     for streamer in streamers:
         live_status_dict.update({streamer: 0})
 
-    print(live_status_dict)
+    logger.debug(live_status_dict)
     session = aiohttp.ClientSession()
     while True:
         for streamer in streamers:
@@ -436,7 +443,7 @@ async def twitch_live_status():
                 async with session.get(twitch_url, headers=headers) as resp:
                     data = await resp.read()
                     json_response = json.loads(data)
-                    print(json_response)
+                    logger.debug(json_response)
 
                     if json_response['data']:
                         if live_status_dict[streamer] == 0:
@@ -444,27 +451,31 @@ async def twitch_live_status():
                             async with session.get(games_url + game_id, headers=headers) as resp:
                                 game_data = await resp.read()
                                 game_response = json.loads(game_data)
-                                print(game_response)  # size: 140 bytes
-                                print("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
+                                logger.debug(game_response)  # size: 140 bytes
+                                logger.debug("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
 
                                 channel = client.get_channel(GENERAL_CHANNEL_ID)
                                 await channel.send("**{} is live on Twitch playing {}!**".format(json_response['data'][0]['user_name'], game_response['data'][0]['name']))
                                 await channel.send("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
                             live_status_dict[streamer] = 1
                         else:
-                            print("still live. not sending")
+                            logger.debug("still live. not sending")
                             live_status_dict[streamer] = 2
                     else:
-                        print("not live")
+                        logger.debug("not live")
                         if live_status_dict[streamer] == 1 or live_status_dict[streamer] == 2:
                             await channel.send("{}\'s stream has ended.".format(streamer))
                             live_status_dict[streamer] = 0
             except Exception as e:
-                print(e)
+                logger.exception(e)
                 # await session.close()
             await asyncio.sleep(2)
         await asyncio.sleep(60)
     # await session.close()
 
-client.loop.create_task(twitch_live_status())
+try:
+    client.loop.create_task(twitch_live_status())
+except Exception as e:
+    logger.exception(e)
+
 client.run(TOKEN)
