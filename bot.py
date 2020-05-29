@@ -356,6 +356,47 @@ async def advice(ctx):
             await ctx.send('Sorry can\'t think of anything')
 
 
+@client.command(brief='Bro shares random facts!')
+async def facts(ctx):
+    print("facts")
+    wait_message = await ctx.send("One interesting fact coming right up...")
+    async with ctx.typing():
+        try:
+            session = aiohttp.ClientSession()
+            async with session.get("https://useless-facts.sameerkumar.website/api") as resp:
+                data = await resp.read()
+            json_response = json.loads(data)
+            await session.close()
+            await wait_message.delete()
+            await ctx.send("{}".format(json_response['data']))
+        except Exception as e:
+            print(e)
+            await ctx.send('Sorry can\'t think of anything')
+
+
+@client.command(brief='Puts out random xkcd comic!')
+async def xkcd(ctx):
+    print("xkcd")
+    wait_message = await ctx.send("Comic time...")
+    comic_number = random.randint(1, 2310)  # comic number range TODO:get dynamically
+    print(comic_number)
+    async with ctx.typing():
+        try:
+            session = aiohttp.ClientSession()
+            url = "https://xkcd.com/{}/info.0.json".format(comic_number)
+            async with session.get(url) as resp:
+                data = await resp.read()
+            json_response = json.loads(data)
+            await session.close()
+            await wait_message.delete()
+            embed = discord.Embed(title=json_response['title'])
+            embed.set_image(url=json_response['img'])
+            await ctx.send(embed=embed)
+        except Exception as e:
+            print(e)
+            await ctx.send('No xkcd for you')
+
+
 ''' ------Background tasks------ '''
 
 
@@ -367,65 +408,63 @@ async def twitch_live_status():
     with open('twitch_app_access') as f:
         app_access_token = f.read().strip()
 
-    streamers = ["suhan525", "bamboozle_heck", "code_name_47_", "scamper07"]  # Twitch user names
+    streamers = ["suhan525",
+                 "bamboozle_heck",
+                 "code_name_47_",
+                 "charlesleclerc",
+                 "drdisrespect",
+                 ]  # Twitch user names
 
-    url = "https://api.twitch.tv/helix/streams?"    # Twitch get streams api
-    games_url = "https://api.twitch.tv/helix/games?id=" # Twitch get game api
-
-    user_login = ""
-    for streamer in streamers:
-        user_login += "user_login={}&".format(streamer)
-    url = url + user_login
-    print(url)
+    url = "https://api.twitch.tv/helix/streams?user_login="    # Twitch get streams api
+    games_url = "https://api.twitch.tv/helix/games?id="  # Twitch get game api
     headers = {'Client-ID': client_id,
                'Authorization': 'Bearer '+app_access_token,
                }
-    live_flag = 0    # LIVE flag
     data = ""
     game_data = ""
     # Total 550-600 bytes of data fetched
+    live_status_dict = {}
+    for streamer in streamers:
+        live_status_dict.update({streamer: 0})
+
+    print(live_status_dict)
+    session = aiohttp.ClientSession()
     while True:
-        try:
-            session = aiohttp.ClientSession()
-            async with session.get(url, headers=headers) as resp:
-                data = await resp.read()
+        for streamer in streamers:
+            twitch_url = url+streamer
+            try:
+                async with session.get(twitch_url, headers=headers) as resp:
+                    data = await resp.read()
+                    json_response = json.loads(data)
+                    print(json_response)
 
-                print(len(data))  # size: 425 bytes
-                json_response = json.loads(data)
-                print(json_response)
+                    if json_response['data']:
+                        if live_status_dict[streamer] == 0:
+                            game_id = json_response['data'][0]['game_id']
+                            async with session.get(games_url + game_id, headers=headers) as resp:
+                                game_data = await resp.read()
+                                game_response = json.loads(game_data)
+                                print(game_response)  # size: 140 bytes
+                                print("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
 
-                if json_response['data']:
-                    if live_flag == 0:
-                        async with session.get(games_url + json_response['data'][0]['game_id'], headers=headers) as resp:
-                            game_data = await resp.read()
-                            game_response = json.loads(game_data)
-                            print(game_response)  # size: 140 bytes
-                            print(len(game_data))
-
-                        print("------------------------------------")
-                        print("LIVE")
-                        print(json_response['data'][0]['user_name'])
-                        print(json_response['data'][0]['title'])
-                        print(game_response['data'][0]['name'])
-                        print("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
-                        print("------------------------------------")
-                        channel = client.get_channel(GENERAL_CHANNEL_ID)
-                        await channel.send("**{} is live on Twitch playing {}!**".format(json_response['data'][0]['user_name'], game_response['data'][0]['name']))
-                        # await channel.send("{}".format(json_response['data'][0]['title']))
-                        await channel.send("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
-                        live_flag = 1
+                                channel = client.get_channel(GENERAL_CHANNEL_ID)
+                                await channel.send("**{} is live on Twitch playing {}!**".format(json_response['data'][0]['user_name'], game_response['data'][0]['name']))
+                                await channel.send("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
+                            live_status_dict[streamer] = 1
+                        else:
+                            print("still live. not sending")
+                            live_status_dict[streamer] = 2
                     else:
-                        print("still live. not sending")
-                else:
-                    print("not live")
-                    live_flag = 0
-
-            await session.close()
-        except Exception as e:
-            print(e)
-
+                        print("not live")
+                        if live_status_dict[streamer] == 1 or live_status_dict[streamer] == 2:
+                            await channel.send("{}\'s stream has ended.".format(streamer))
+                            live_status_dict[streamer] = 0
+            except Exception as e:
+                print(e)
+                # await session.close()
+            await asyncio.sleep(2)
         await asyncio.sleep(60)
+    # await session.close()
 
 client.loop.create_task(twitch_live_status())
 client.run(TOKEN)
-
