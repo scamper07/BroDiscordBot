@@ -1,3 +1,5 @@
+import time
+
 import discord
 from discord.ext import commands
 from collections import Counter
@@ -8,6 +10,8 @@ import json
 import asyncio
 import logging
 from logging.handlers import TimedRotatingFileHandler
+import html
+import datetime
 
 ''' Initialize logging '''
 logger = logging.getLogger('discord')
@@ -26,6 +30,10 @@ GENERAL_CHANNEL_ID = 698571675754692752
 TEST_CHANNEL_ID = 207481917975560192
 MEMBER_UPDATE_COUNT = 0
 GAME_MODE = False
+QUIZ_MODE = False
+QUIZ_DIFFICULTY = "easy"
+QUIZ_MAX_QUESTIONS = 5
+QUIZ_QUESTION_WAIT_TIME = 15  # seconds
 stats_brief = 'Shows random stats about server, {}stats <username> for user'.format(COMMAND_PREFIX)
 
 # Messages/Quotes
@@ -47,7 +55,6 @@ WAR_CRY_LIST = ['LET\'S GO BROS!',
 ''' ----Bot client object initialization---- '''
 client = commands.Bot(command_prefix=COMMAND_PREFIX)
 
-
 ''' -------Event functionality------- '''
 
 
@@ -65,26 +72,33 @@ async def on_message(message):
     global WAR_CRY_LIST
     if message.author == client.user:
         return
-    full_message = message.content.lower()
-    if 'bro' in full_message:
+
+    full_message = message.content.lower()  # has full message in lower case
+    full_message_list = full_message.split()  # message is split on spaces
+
+    if 'bro' in full_message_list:
         logging.debug("Sending Bro message")
         await message.channel.send("Bro", tts=False)
 
-    if 'hello' in full_message or 'hi ' in full_message:
+    if 'hello' in full_message_list or 'hi' in full_message_list:
         logger.debug("Sending hello message")
         await message.channel.send("Hello {} Bro".format(message.author.mention))
 
-    if 'bye' in full_message:
+    if 'bye' in full_message_list:
         logger.debug("Sending bye message")
         await message.channel.send("Bye Bye {} Bro".format(message.author.mention))
 
-    if "good morning" in full_message:
+    if 'good morning' in full_message or 'gm' in full_message_list:
         logger.debug("Sending gm message")
         await message.channel.send("Good morning Bros")
 
-    if "good night" in full_message:
+    if 'good night' in full_message or 'gn' in full_message_list:
         logger.debug("Sending gn message")
         await message.channel.send("Good night Bros")
+
+    if 'good game' in full_message or 'gg' in full_message_list:
+        logger.debug("Sending gn message")
+        await message.channel.send("gg Bros")
 
     if "i\'m online" in full_message or "im online" in full_message:
         logger.debug("Sending online message")
@@ -96,10 +110,6 @@ async def on_message(message):
         await message.channel.send("***STREAM STREAM STREAM!***")
         await message.channel.send(random.choice(WAR_CRY_LIST), tts=True)
     '''
-
-    if 'stop bro' in full_message or 'shut up bro' in full_message:
-        logger.debug("Sending sorry message")
-        await message.channel.send("Sorry bro *cries in the corner*")
 
     global GAME_MODE
     if GAME_MODE:
@@ -135,7 +145,9 @@ async def on_message(message):
             await message.channel.send("```Empty/Invalid entry```")
         except Exception as e:
             logger.exception(e)
+
     await client.process_commands(message)
+
 
 '''
 @client.event
@@ -182,11 +194,12 @@ async def stats(ctx, user: discord.Member = None):
             server_create_date = server.created_at.__format__('%d/%B/%Y')
             server_member_count = server.member_count
             logger.debug("*****************************")
-            logger.debug("Server name: {}\nserver owner: {}\nserver created at: {}\nTotal number of members: {}".format(server_name,
-                                                                                                                    server_owner,
-                                                                                                                    server_create_date,
-                                                                                                                    server_member_count)
-                  )
+            logger.debug("Server name: {}\nserver owner: {}\nserver created at: {}\nTotal number of members: {}".format(
+                server_name,
+                server_owner,
+                server_create_date,
+                server_member_count)
+            )
             embed.add_field(name="Server Name", value=server_name, inline=False)
             embed.add_field(name="Server Owner", value=server_owner, inline=True)
             embed.add_field(name="Server Create Date", value=server_create_date, inline=True)
@@ -210,13 +223,15 @@ async def stats(ctx, user: discord.Member = None):
 
             top = authors_count.most_common(1)
             logger.debug("Most talkative bro: {} talked {} times".format(top[0][0], top[0][1]))
-            value = str(top[0][0] if ctx.guild.get_member_named(top[0][0]) is None else ctx.guild.get_member_named(top[0][0]).mention) + " (" + str(top[0][1]) + " messages)"
+            value = str(top[0][0] if ctx.guild.get_member_named(top[0][0]) is None else ctx.guild.get_member_named(
+                top[0][0]).mention) + " (" + str(top[0][1]) + " messages)"
             logger.debug(value)
             embed.add_field(name="Most Talkative Bro", value=value, inline=False)
 
             low = min(authors_count, key=authors_count.get)
             logger.debug("Least talkative bro: {} talked {} time(s)".format(low, authors_count[low]))
-            value = str(low if ctx.guild.get_member_named(low) is None else ctx.guild.get_member_named(low).mention) + " (" + str(authors_count[low]) + " messages)"
+            value = str(low if ctx.guild.get_member_named(low) is None else ctx.guild.get_member_named(
+                low).mention) + " (" + str(authors_count[low]) + " messages)"
             embed.add_field(name="Least Talkative Bro", value=value, inline=True)
 
             top_authors = ""
@@ -224,7 +239,9 @@ async def stats(ctx, user: discord.Member = None):
                 logger.debug("Top 5 talkative Bros")
                 for author, message_count in authors_count.most_common(5):
                     logger.debug("{}: {} times".format(author, message_count))
-                    top_authors += str(author if ctx.guild.get_member_named(author) is None else ctx.guild.get_member_named(author).mention) + " (" + str(message_count) + " messages) \n"
+                    top_authors += str(
+                        author if ctx.guild.get_member_named(author) is None else ctx.guild.get_member_named(
+                            author).mention) + " (" + str(message_count) + " messages) \n"
 
             embed.add_field(name="Top 5 Talkative Bros", value=top_authors, inline=False)
 
@@ -404,6 +421,127 @@ async def xkcd(ctx):
             await ctx.send('No xkcd for you')
 
 
+@client.command(brief='Starts a game of quiz')
+async def quiz(ctx, arg=None):
+    global QUIZ_MAX_QUESTIONS, QUIZ_QUESTION_WAIT_TIME, QUIZ_MODE, QUIZ_DIFFICULTY
+    if not arg or arg == "noinstructions":
+        QUIZ_MODE = True
+        if arg != "noinstructions":
+            await ctx.send(
+                '```Instructions:\n'
+                'a. There will be a total of {} questions\n'
+                'b. Each question will have 4 options with 100 pts for correct answer\n'
+                'c. To answer, participants have to react with appropriate option\n'
+                'd. Participants have {} seconds to answer each question\n'
+                'e. Selecting more than one choice will result in DISQUALIFICATION\n'
+                'f. Participant with the most points is the WINNER!\n```'.format(QUIZ_MAX_QUESTIONS,
+                                                                                 QUIZ_QUESTION_WAIT_TIME)
+            )
+            await asyncio.sleep(2)
+            await ctx.send('```Game begins in 15 seconds...```')
+            await asyncio.sleep(15)
+
+        question_number = 1
+        participant_score = {}  # dictionary which stores participant name and score
+
+        while question_number <= QUIZ_MAX_QUESTIONS:
+            if not QUIZ_MODE:
+                # Stop quiz mode
+                return
+
+            async with ctx.typing():
+                category, question, options, answer = await generate_quiz_question()
+                message = await ctx.send(html.unescape('\n**Question {}**\n'
+                                                       '**{}**\n'
+                                                       ':one: {}\n'
+                                                       ':two: {}\n'
+                                                       ':three: {}\n'
+                                                       ':four: {}\n'.format(question_number,
+                                                                            question,
+                                                                            options[0],
+                                                                            options[1],
+                                                                            options[2],
+                                                                            options[3]
+                                                                            )))
+            emojis = ["{}\N{COMBINING ENCLOSING KEYCAP}".format(num) for num in range(1, 5)]  # emoji code for 1,2,3,4
+            for emoji in emojis:
+                await message.add_reaction(emoji)
+                await asyncio.sleep(.75)
+
+            participant_response = {}  # dictionary to record user response
+
+            # Give participants some time to react before moving on to next question
+            time_at_start = datetime.datetime.today().timestamp()
+            target_time = time_at_start + QUIZ_QUESTION_WAIT_TIME  # wait for QUIZ_QUESTION_WAIT_TIME seconds for response
+
+            logger.debug("time_at_start {}".format(time_at_start))
+            logger.debug("target_time {}".format(target_time))
+
+            while datetime.datetime.today().timestamp() < target_time:
+                logger.debug("while now {}".format(datetime.datetime.today().timestamp()))
+                try:
+                    reaction, user = await client.wait_for('reaction_add', timeout=5,
+                                                           check=lambda reaction1, user1: str(
+                                                               reaction1.emoji) in emojis)
+                    logger.debug("{} reacted with {}".format(user.display_name, reaction))
+                    # TODO: remove older reaction if user changes option
+                    # message.remove_reaction(participant_response[user], user)
+                    participant_response.update({user.display_name: emojis.index(reaction.emoji)})
+                except asyncio.TimeoutError:
+                    logger.debug("Timeout in Quiz")
+                except Exception as e:
+                    logger.exception(e)
+
+            await ctx.send("Correct answer was **{}**".format(html.unescape(answer)))
+
+            for participant in participant_response:
+                if participant == "Bro":
+                    continue
+
+                if participant not in participant_score:
+                    participant_score.update({participant: 0})
+
+                if participant_response[participant] == options.index(answer):
+                    logger.debug("Updating score for {}".format(participant))
+                    participant_score.update({participant: participant_score[participant] + 100})
+
+            # show round score
+            round_score = ""
+            for participant in participant_score:
+                round_score += "{}: {}\n".format(participant, participant_score[participant])
+            await ctx.send("```Score after Round {}\n{}```".format(question_number, round_score))
+            question_number += 1
+
+        logger.debug("quiz complete")
+        winner = max(participant_score, key=participant_score.get)
+        if participant_score[winner] != 0:
+            await ctx.send("{} is the WINNER. Congrats! :trophy: :first_place:".format(winner))
+        else:
+            await ctx.send("No one scored any points. LOSERS!")
+
+    elif arg.lower() == "stop":
+        QUIZ_MODE = False
+        await ctx.send('```Quiz mode stopped```')
+    elif arg.lower() == "easy":
+        QUIZ_DIFFICULTY = "easy"
+        await ctx.send('```Quiz difficulty set to easy```')
+    elif arg.lower() == "medium":
+        QUIZ_DIFFICULTY = "medium"
+        await ctx.send('```Quiz difficulty set to medium```')
+    elif arg.lower() == "hard":
+        QUIZ_DIFFICULTY = "hard"
+        await ctx.send('```Quiz difficulty set to hard```')
+    elif arg.isdigit():
+        QUIZ_MAX_QUESTIONS = int(arg)
+        await ctx.send('```Quiz max number of questions set to {}```'.format(QUIZ_MAX_QUESTIONS))
+    else:
+        # TODO: add option to change quiz config settings
+        # number of questions
+        # mode : easy, medium, hard
+        # delay: ?
+        pass
+
+
 ''' ------Background tasks------ '''
 
 
@@ -415,17 +553,17 @@ async def twitch_live_status():
     with open('twitch_app_access') as f:
         app_access_token = f.read().strip()
 
-    streamers = ["suhan525",
+    # TODO: add command to insert user
+    streamers = ["swatplayskreede",
                  "bamboozle_heck",
                  "code_name_47_",
                  "charlesleclerc",
-                 "drdisrespect",
                  ]  # Twitch user names
 
-    url = "https://api.twitch.tv/helix/streams?user_login="    # Twitch get streams api
+    url = "https://api.twitch.tv/helix/streams?user_login="  # Twitch get streams api
     games_url = "https://api.twitch.tv/helix/games?id="  # Twitch get game api
     headers = {'Client-ID': client_id,
-               'Authorization': 'Bearer '+app_access_token,
+               'Authorization': 'Bearer ' + app_access_token,
                }
     data = ""
     game_data = ""
@@ -438,7 +576,7 @@ async def twitch_live_status():
     session = aiohttp.ClientSession()
     while True:
         for streamer in streamers:
-            twitch_url = url+streamer
+            twitch_url = url + streamer
             try:
                 async with session.get(twitch_url, headers=headers) as resp:
                     data = await resp.read()
@@ -455,8 +593,11 @@ async def twitch_live_status():
                                 logger.debug("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
 
                                 channel = client.get_channel(GENERAL_CHANNEL_ID)
-                                await channel.send("**{} is live on Twitch playing {}!**".format(json_response['data'][0]['user_name'], game_response['data'][0]['name']))
-                                await channel.send("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
+                                await channel.send(
+                                    "**{} is live on Twitch playing {}!**".format(json_response['data'][0]['user_name'],
+                                                                                  game_response['data'][0]['name']))
+                                await channel.send(
+                                    "https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
                             live_status_dict[streamer] = 1
                         else:
                             logger.debug("still live. not sending")
@@ -472,6 +613,43 @@ async def twitch_live_status():
             await asyncio.sleep(2)
         await asyncio.sleep(60)
     # await session.close()
+
+
+''' ------utils------ '''
+
+
+async def generate_quiz_question():
+    category = ""
+    question = ""
+    options = ""
+    correct_answer = ""
+    global QUIZ_DIFFICULTY
+    try:
+        session = aiohttp.ClientSession()
+        url = 'https://opentdb.com/api.php?amount=1&category=9&difficulty={}&type=multiple'.format(QUIZ_DIFFICULTY)
+        async with session.get(url) as resp:
+            data = await resp.read()
+            json_response = json.loads(data)
+        await session.close()
+
+        category = json_response['results'][0]['category']
+        question = json_response['results'][0]['question']
+        correct_answer = json_response['results'][0]['correct_answer']
+        incorrect_answers = json_response['results'][0]['incorrect_answers']
+
+        logger.debug("Category: {}".format(category))
+        logger.debug("Question: {}".format(question))
+        logger.debug("Answer: {}".format(correct_answer))
+
+        options = incorrect_answers.copy()
+        options.append(correct_answer)
+        random.shuffle(options)
+
+    except Exception as e:
+        logger.exception(e)
+
+    return category, question, options, correct_answer
+
 
 try:
     client.loop.create_task(twitch_live_status())
