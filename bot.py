@@ -82,27 +82,27 @@ async def on_message(message):
 
     if 'hello' in full_message_list or 'hi' in full_message_list:
         logger.debug("Sending hello message")
-        await message.channel.send("Hello {} Bro".format(message.author.mention))
+        await message.channel.send("Hello {} bro".format(message.author.mention))
 
     if 'bye' in full_message_list:
         logger.debug("Sending bye message")
-        await message.channel.send("Bye Bye {} Bro".format(message.author.mention))
+        await message.channel.send("Bye Bye {} bro".format(message.author.mention))
 
     if 'good morning' in full_message or 'gm' in full_message_list:
         logger.debug("Sending gm message")
-        await message.channel.send("Good morning Bros")
+        await message.channel.send("Good morning bros")
 
     if 'good night' in full_message or 'gn' in full_message_list:
         logger.debug("Sending gn message")
-        await message.channel.send("Good night Bros")
+        await message.channel.send("Good night bros")
 
     if 'good game' in full_message or 'gg' in full_message_list:
         logger.debug("Sending gn message")
-        await message.channel.send("gg Bros")
+        await message.channel.send("gg bros")
 
     if "i\'m online" in full_message or "im online" in full_message:
         logger.debug("Sending online message")
-        await message.channel.send("I'm online too Bro")
+        await message.channel.send("I'm online too bro")
 
     '''
     if 'stream' in full_message:  # or 'play' in full_message and '-play' not in full_message:
@@ -431,15 +431,15 @@ async def quiz(ctx, arg=None):
                 '```Instructions:\n'
                 'a. There will be a total of {} questions\n'
                 'b. Each question will have 4 options with 100 pts for correct answer\n'
-                'c. To answer, participants have to react with appropriate option\n'
+                'c. To answer, participants have to click on the appropriate reaction\n'
                 'd. Participants have {} seconds to answer each question\n'
                 'e. Selecting more than one choice will result in DISQUALIFICATION\n'
                 'f. Participant with the most points is the WINNER!\n```'.format(QUIZ_MAX_QUESTIONS,
                                                                                  QUIZ_QUESTION_WAIT_TIME)
             )
             await asyncio.sleep(2)
-            await ctx.send('```Game begins in 15 seconds...```')
-            await asyncio.sleep(15)
+            await ctx.send('```Game begins in 20 seconds...```')
+            await asyncio.sleep(20)
 
         question_number = 1
         participant_score = {}  # dictionary which stores participant name and score
@@ -511,6 +511,7 @@ async def quiz(ctx, arg=None):
                 round_score += "{}: {}\n".format(participant, participant_score[participant])
             await ctx.send("```Score after Round {}\n{}```".format(question_number, round_score))
             question_number += 1
+            await asyncio.sleep(3)
 
         logger.debug("quiz complete")
         winner = max(participant_score, key=participant_score.get)
@@ -532,8 +533,11 @@ async def quiz(ctx, arg=None):
         QUIZ_DIFFICULTY = "hard"
         await ctx.send('```Quiz difficulty set to hard```')
     elif arg.isdigit():
-        QUIZ_MAX_QUESTIONS = int(arg)
-        await ctx.send('```Quiz max number of questions set to {}```'.format(QUIZ_MAX_QUESTIONS))
+        if int(arg) > 30:
+            await ctx.send('```Quiz: max number of questions cannot be greater than 30```')
+        else:
+            QUIZ_MAX_QUESTIONS = int(arg)
+            await ctx.send('```Quiz: max number of questions set to {}```'.format(QUIZ_MAX_QUESTIONS))
     else:
         # TODO: add option to change quiz config settings
         # number of questions
