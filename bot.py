@@ -28,6 +28,7 @@ with open('token') as f:
 COMMAND_PREFIX = '.'
 GENERAL_CHANNEL_ID = 698571675754692752
 TEST_CHANNEL_ID = 207481917975560192
+TEST2_CHANNEL_ID = 573003537609654283
 MEMBER_UPDATE_COUNT = 0
 GAME_MODE = False
 QUIZ_MODE = False
@@ -356,9 +357,13 @@ async def switchon(ctx):
 
 @client.command(brief='', hidden=True)
 async def post(ctx, *args):
-    message = ' '.join(args)
+    if args[0] == 'gb':
+        channel = client.get_channel(TEST2_CHANNEL_ID)
+        message = ' '.join(args[1:])
+    else:
+        channel = client.get_channel(GENERAL_CHANNEL_ID)
+        message = ' '.join(args)
     logger.debug("{} {}".format(len(args), message))
-    channel = client.get_channel(GENERAL_CHANNEL_ID)
     await channel.send(message)
 
 
