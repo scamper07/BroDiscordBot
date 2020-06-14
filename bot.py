@@ -12,7 +12,6 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import html
 import datetime
-import tic_tac_toe as ttt
 
 ''' Initialize logging '''
 logger = logging.getLogger('discord')
