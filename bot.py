@@ -25,7 +25,7 @@ with open('token') as f:
     TOKEN = f.read()
 
 ''' -------Globals variables------- '''
-ALPHA_MALES_GOODIE_BAG_CHANNEL = 720833617311301685
+ALPHA_MALES_GOODIE_BAG_CHANNEL = 573003537609654283
 COMMAND_PREFIX = '.'
 GENERAL_CHANNEL_ID = 698571675754692752
 TEST_CHANNEL_ID = 207481917975560192
@@ -107,8 +107,8 @@ async def on_message(message):
         await message.channel.send("I'm online too bro")
 
     if "tictactoe" in full_message:
-        logger.debug("Starting game")
-        await ttt.start_game(message)
+        await message.channel.send("Kai is trying to build this. Coming soon..\n P.S : I hope so - Pavan")
+        #await ttt.start_game(message)
 
     '''
     if 'stream' in full_message:  # or 'play' in full_message and '-play' not in full_message:
