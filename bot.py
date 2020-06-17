@@ -1,7 +1,7 @@
 import time
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from collections import Counter
 from pyKey import press
 import random
@@ -25,6 +25,7 @@ with open('token') as f:
     TOKEN = f.read()
 
 ''' -------Globals variables------- '''
+ALPHA_MALES_GOODIE_BAG_CHANNEL = 573003537609654283
 COMMAND_PREFIX = '.'
 GENERAL_CHANNEL_ID = 698571675754692752
 TEST_CHANNEL_ID = 207481917975560192
@@ -104,6 +105,10 @@ async def on_message(message):
     if "i\'m online" in full_message or "im online" in full_message:
         logger.debug("Sending online message")
         await message.channel.send("I'm online too bro")
+
+    if "tictactoe" in full_message:
+        await message.channel.send("Kai is trying to build this. Coming soon..\n P.S : I hope so - Pavan")
+        #await ttt.start_game(message)
 
     '''
     if 'stream' in full_message:  # or 'play' in full_message and '-play' not in full_message:
@@ -369,20 +374,7 @@ async def post(ctx, *args):
 
 @client.command(brief='Bro gives life advices!')
 async def advice(ctx):
-    logger.debug("advice")
-    wait_message = await ctx.send("Let me think...")
-    async with ctx.typing():
-        try:
-            session = aiohttp.ClientSession()
-            async with session.get("https://api.adviceslip.com/advice") as resp:
-                data = await resp.read()
-            json_response = json.loads(data)
-            await session.close()
-            await wait_message.delete()
-            await ctx.send('*\"{}\"*'.format(json_response['slip']['advice']))
-        except Exception as e:
-            logger.exception(e)
-            await ctx.send('Sorry can\'t think of anything')
+    await get_advice(ctx)
 
 
 @client.command(brief='Bro shares random facts!')
@@ -550,7 +542,6 @@ async def quiz(ctx, arg=None):
         # delay: ?
         pass
 
-
 ''' ------Background tasks------ '''
 
 
@@ -623,9 +614,34 @@ async def twitch_live_status():
         await asyncio.sleep(60)
     # await session.close()
 
+@tasks.loop(hours=24.0)
+async def daily_advices():
+    message_channel = client.get_channel(ALPHA_MALES_GOODIE_BAG_CHANNEL)
+    await get_advice(message_channel)
+
+@daily_advices.before_loop
+async def before():
+    await client.wait_until_ready()
+    print("Finished waiting")
+
 
 ''' ------utils------ '''
 
+async def get_advice(message_channel):
+    logger.debug("advice")
+    wait_message = await message_channel.send("Let me think...")
+
+    try:
+        session = aiohttp.ClientSession()
+        async with session.get("https://api.adviceslip.com/advice") as resp:
+            data = await resp.read()
+        json_response = json.loads(data)
+        await session.close()
+        await wait_message.delete()
+        await message_channel.send('*\"{}\"*'.format(json_response['slip']['advice']))
+    except Exception as e:
+        logger.exception(e)
+        await message_channel.send('Sorry can\'t think of anything')
 
 async def generate_quiz_question():
     category = ""
@@ -665,4 +681,5 @@ try:
 except Exception as e:
     logger.exception(e)
 
+daily_advices.start()
 client.run(TOKEN)
