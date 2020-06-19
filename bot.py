@@ -14,7 +14,7 @@ import html
 import datetime
 
 ''' Initialize logging '''
-logger = logging.getLogger('discord')
+logger = logging.getLogger('BroBot')
 logger.setLevel(logging.DEBUG)
 handler = TimedRotatingFileHandler(filename='discord.log', when="midnight", backupCount=5)
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s', datefmt='%d-%b-%y %H:%M:%S'))
@@ -25,17 +25,30 @@ with open('token') as f:
     TOKEN = f.read()
 
 ''' -------Globals variables------- '''
-ALPHA_MALES_GOODIE_BAG_CHANNEL = 573003537609654283
 COMMAND_PREFIX = '.'
+
+# Channel info
+ALPHA_MALES_GOODIE_BAG_CHANNEL = 573003537609654283
 GENERAL_CHANNEL_ID = 698571675754692752
 TEST_CHANNEL_ID = 207481917975560192
 TEST2_CHANNEL_ID = 573003537609654283
-MEMBER_UPDATE_COUNT = 0
+
+# Game globals
 GAME_MODE = False
+
+# Quiz globals
 QUIZ_MODE = False
 QUIZ_DIFFICULTY = "easy"
 QUIZ_MAX_QUESTIONS = 5
 QUIZ_QUESTION_WAIT_TIME = 15  # seconds
+
+# Twitch globals
+TWITCH_NOT_STREAMING = 0
+TWITCH_STARTED_STREAMING = 1
+TWITCH_STILL_STREAMING = 2
+
+# Misc globals
+MEMBER_UPDATE_COUNT = 0
 stats_brief = 'Shows random stats about server, {}stats <username> for user'.format(COMMAND_PREFIX)
 
 # Messages/Quotes
@@ -545,6 +558,7 @@ async def quiz(ctx, arg=None):
 ''' ------Background tasks------ '''
 
 
+@tasks.loop(minutes=5)
 async def twitch_live_status():
     await client.wait_until_ready()
     with open('twitch_client_id') as f:
@@ -555,9 +569,10 @@ async def twitch_live_status():
 
     # TODO: add command to insert user
     streamers = ["swatplayskreede",
-                 "bamboozle_heck",
                  "code_name_47_",
-                 "charlesleclerc",
+                 "bamboozle_heck",
+                 "kbharathi",
+                 "supersonic_mk"
                  ]  # Twitch user names
 
     url = "https://api.twitch.tv/helix/streams?user_login="  # Twitch get streams api
@@ -565,59 +580,68 @@ async def twitch_live_status():
     headers = {'Client-ID': client_id,
                'Authorization': 'Bearer ' + app_access_token,
                }
-    data = ""
-    game_data = ""
+
     # Total 550-600 bytes of data fetched
     live_status_dict = {}
     for streamer in streamers:
-        live_status_dict.update({streamer: 0})
-
+        live_status_dict.update({streamer: TWITCH_NOT_STREAMING})
     logger.debug(live_status_dict)
+
     session = aiohttp.ClientSession()
-    while True:
+    try:
         for streamer in streamers:
             twitch_url = url + streamer
-            try:
-                async with session.get(twitch_url, headers=headers) as resp:
-                    data = await resp.read()
-                    json_response = json.loads(data)
-                    logger.debug(json_response)
 
-                    if json_response['data']:
-                        if live_status_dict[streamer] == 0:
-                            game_id = json_response['data'][0]['game_id']
-                            async with session.get(games_url + game_id, headers=headers) as resp:
-                                game_data = await resp.read()
-                                game_response = json.loads(game_data)
-                                logger.debug(game_response)  # size: 140 bytes
-                                logger.debug("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
+            async with session.get(twitch_url, headers=headers) as resp:
+                data = await resp.read()
+                json_response = json.loads(data)
+                logger.debug(json_response)
 
-                                channel = client.get_channel(GENERAL_CHANNEL_ID)
-                                await channel.send(
-                                    "**{} is live on Twitch playing {}!**".format(json_response['data'][0]['user_name'],
-                                                                                  game_response['data'][0]['name']))
-                                await channel.send(
-                                    "https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
-                            live_status_dict[streamer] = 1
-                        else:
-                            logger.debug("still live. not sending")
-                            live_status_dict[streamer] = 2
+                # if data not empty, user is streaming
+                if json_response['data']:
+                    if live_status_dict[streamer] == TWITCH_NOT_STREAMING:
+                        game_id = json_response['data'][0]['game_id']
+
+                        # get info on game the user is playing
+                        async with session.get(games_url + game_id, headers=headers) as resp:
+                            game_data = await resp.read()
+                            game_response = json.loads(game_data)
+                            logger.debug(game_response)  # size: 140 bytes
+                            logger.debug("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
+
+                            channel = client.get_channel(GENERAL_CHANNEL_ID)
+                            await channel.send(
+                                "**{} is live on Twitch playing {}!**".format(json_response['data'][0]['user_name'],
+                                                                              game_response['data'][0]['name']))
+                            await channel.send(
+                                "https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
+                        live_status_dict[streamer] = TWITCH_STARTED_STREAMING
                     else:
-                        logger.debug("not live")
-                        if live_status_dict[streamer] == 1 or live_status_dict[streamer] == 2:
-                            await channel.send("{}\'s stream has ended.".format(streamer))
-                            live_status_dict[streamer] = 0
-            except Exception as e:
-                logger.exception(e)
-                # await session.close()
+                        logger.debug("{} is still live. not sending".format(streamer))
+                        live_status_dict[streamer] = TWITCH_STILL_STREAMING
+                else:
+                    logger.debug("{} is not live".format(streamer))
+                    if live_status_dict[streamer] == TWITCH_STARTED_STREAMING or live_status_dict[streamer] == TWITCH_STILL_STREAMING:
+                        await channel.send("{}\'s stream has ended.".format(streamer))
+                        live_status_dict[streamer] = TWITCH_NOT_STREAMING
             await asyncio.sleep(2)
-        await asyncio.sleep(60)
-    # await session.close()
+    except Exception as e:
+        logger.exception(e)
+    finally:
+        await session.close()
+
+
+@twitch_live_status.before_loop
+async def before():
+    await client.wait_until_ready()
+    print("Finished waiting")
+
 
 @tasks.loop(hours=24.0)
 async def daily_advices():
     message_channel = client.get_channel(ALPHA_MALES_GOODIE_BAG_CHANNEL)
     await get_advice(message_channel)
+
 
 @daily_advices.before_loop
 async def before():
@@ -626,6 +650,7 @@ async def before():
 
 
 ''' ------utils------ '''
+
 
 async def get_advice(message_channel):
     logger.debug("advice")
@@ -642,6 +667,7 @@ async def get_advice(message_channel):
     except Exception as e:
         logger.exception(e)
         await message_channel.send('Sorry can\'t think of anything')
+
 
 async def generate_quiz_question():
     category = ""
@@ -675,11 +701,7 @@ async def generate_quiz_question():
 
     return category, question, options, correct_answer
 
-
-try:
-    client.loop.create_task(twitch_live_status())
-except Exception as e:
-    logger.exception(e)
-
+twitch_live_status.start()
 daily_advices.start()
+
 client.run(TOKEN)
