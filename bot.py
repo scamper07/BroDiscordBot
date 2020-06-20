@@ -14,7 +14,7 @@ import html
 import datetime
 
 ''' Initialize logging '''
-logger = logging.getLogger('BroBot')
+logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 handler = TimedRotatingFileHandler(filename='discord.log', when="midnight", backupCount=5)
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s', datefmt='%d-%b-%y %H:%M:%S'))
@@ -46,6 +46,18 @@ QUIZ_QUESTION_WAIT_TIME = 15  # seconds
 TWITCH_NOT_STREAMING = 0
 TWITCH_STARTED_STREAMING = 1
 TWITCH_STILL_STREAMING = 2
+live_status_dict = {}
+
+# TODO: add command to insert user
+streamers = ["swatplayskreede",
+             "code_name_47_",
+             "bamboozle_heck",
+             "kbharathi",
+             "supersonic_mk"
+             ]  # Twitch user names
+
+for player in streamers:
+    live_status_dict.update({player: TWITCH_NOT_STREAMING})
 
 # Misc globals
 MEMBER_UPDATE_COUNT = 0
@@ -567,14 +579,6 @@ async def twitch_live_status():
     with open('twitch_app_access') as f:
         app_access_token = f.read().strip()
 
-    # TODO: add command to insert user
-    streamers = ["swatplayskreede",
-                 "code_name_47_",
-                 "bamboozle_heck",
-                 "kbharathi",
-                 "supersonic_mk"
-                 ]  # Twitch user names
-
     url = "https://api.twitch.tv/helix/streams?user_login="  # Twitch get streams api
     games_url = "https://api.twitch.tv/helix/games?id="  # Twitch get game api
     headers = {'Client-ID': client_id,
@@ -582,9 +586,7 @@ async def twitch_live_status():
                }
 
     # Total 550-600 bytes of data fetched
-    live_status_dict = {}
-    for streamer in streamers:
-        live_status_dict.update({streamer: TWITCH_NOT_STREAMING})
+    global live_status_dict, streamers
     logger.debug(live_status_dict)
 
     session = aiohttp.ClientSession()
