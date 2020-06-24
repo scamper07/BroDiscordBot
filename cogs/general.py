@@ -5,6 +5,7 @@ import aiohttp
 import json
 import random
 import logging
+from bs4 import BeautifulSoup
 from logging.handlers import TimedRotatingFileHandler
 
 import logging
@@ -65,3 +66,21 @@ class General(commands.Cog):
             except Exception as e:
                 logger.exception(e)
                 await ctx.send('No xkcd for you')
+
+    @commands.command(brief='Bro insults')
+    async def insult(self, ctx):
+        logger.debug("insult")
+        wait_message = await ctx.send("Buckle up Butter cup...")
+        async with ctx.typing():
+            try:
+                session = aiohttp.ClientSession()
+                url = "https://insult.mattbas.org/api/insult.json"
+                async with session.get(url) as resp:
+                    data = await resp.read()
+                json_response = json.loads(data)
+                await session.close()
+                await wait_message.delete()
+                await ctx.send("{}".format(json_response['insult']))
+            except Exception as e:
+                logger.exception(e)
+                await ctx.send('No insult for you. Get a life')
