@@ -5,7 +5,6 @@ import aiohttp
 import json
 import random
 import logging
-from bs4 import BeautifulSoup
 from logging.handlers import TimedRotatingFileHandler
 
 import logging
