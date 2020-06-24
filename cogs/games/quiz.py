@@ -1,40 +1,29 @@
-from discord.ext import commands
-import discord
 import asyncio
 import aiohttp
 import json
-import logging
-from logging.handlers import TimedRotatingFileHandler
 import html
 import datetime
+import random
+from discord.ext import commands
+from base_logger import logger
 
-''' Initialize logging '''
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = TimedRotatingFileHandler(filename='discord.log', when="midnight", backupCount=5)
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s', datefmt='%d-%b-%y %H:%M:%S'))
-logger.addHandler(handler)
-
-# Quiz globals
-QUIZ_MODE = False
-QUIZ_DIFFICULTY = "easy"
-QUIZ_MAX_QUESTIONS = 5
-QUIZ_QUESTION_WAIT_TIME = 15  # seconds
 
 class Quiz(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self._last_member = None
+        self.QUIZ_MODE = False
+        self.QUIZ_DIFFICULTY = "easy"
+        self.QUIZ_MAX_QUESTIONS = 5
+        self.QUIZ_QUESTION_WAIT_TIME = 15  # seconds
 
     async def generate_quiz_question(self):
         category = ""
         question = ""
         options = ""
         correct_answer = ""
-        global QUIZ_DIFFICULTY
         try:
             session = aiohttp.ClientSession()
-            url = 'https://opentdb.com/api.php?amount=1&category=9&difficulty={}&type=multiple'.format(QUIZ_DIFFICULTY)
+            url = 'https://opentdb.com/api.php?amount=1&category=9&difficulty={}&type=multiple'.format(self.QUIZ_DIFFICULTY)
             async with session.get(url) as resp:
                 data = await resp.read()
                 json_response = json.loads(data)
@@ -60,9 +49,8 @@ class Quiz(commands.Cog):
 
     @commands.command(brief='Starts a game of quiz')
     async def quiz(self, ctx, arg=None):
-        global QUIZ_MAX_QUESTIONS, QUIZ_QUESTION_WAIT_TIME, QUIZ_MODE, QUIZ_DIFFICULTY
         if not arg or arg == "noinstructions":
-            QUIZ_MODE = True
+            self.QUIZ_MODE = True
             if arg != "noinstructions":
                 await ctx.send(
                     '```Instructions:\n'
@@ -71,8 +59,8 @@ class Quiz(commands.Cog):
                     'c. To answer, participants have to click on the appropriate reaction\n'
                     'd. Participants have {} seconds to answer each question\n'
                     'e. Selecting more than one choice will result in DISQUALIFICATION\n'
-                    'f. Participant with the most points is the WINNER!\n```'.format(QUIZ_MAX_QUESTIONS,
-                                                                                     QUIZ_QUESTION_WAIT_TIME)
+                    'f. Participant with the most points is the WINNER!\n```'.format(self.QUIZ_MAX_QUESTIONS,
+                                                                                     self.QUIZ_QUESTION_WAIT_TIME)
                 )
                 await asyncio.sleep(2)
                 await ctx.send('```Game begins in 20 seconds...```')
@@ -81,8 +69,8 @@ class Quiz(commands.Cog):
             question_number = 1
             participant_score = {}  # dictionary which stores participant name and score
 
-            while question_number <= QUIZ_MAX_QUESTIONS:
-                if not QUIZ_MODE:
+            while question_number <= self.QUIZ_MAX_QUESTIONS:
+                if not self.QUIZ_MODE:
                     # Stop quiz mode
                     return
 
@@ -100,7 +88,8 @@ class Quiz(commands.Cog):
                                                                                 options[2],
                                                                                 options[3]
                                                                                 )))
-                emojis = ["{}\N{COMBINING ENCLOSING KEYCAP}".format(num) for num in range(1, 5)]  # emoji code for 1,2,3,4
+                emojis = ["{}\N{COMBINING ENCLOSING KEYCAP}".format(num) for num in
+                          range(1, 5)]  # emoji code for 1,2,3,4
                 for emoji in emojis:
                     await message.add_reaction(emoji)
                     await asyncio.sleep(.75)
@@ -109,7 +98,7 @@ class Quiz(commands.Cog):
 
                 # Give participants some time to react before moving on to next question
                 time_at_start = datetime.datetime.today().timestamp()
-                target_time = time_at_start + QUIZ_QUESTION_WAIT_TIME  # wait for QUIZ_QUESTION_WAIT_TIME seconds for response
+                target_time = time_at_start + self.QUIZ_QUESTION_WAIT_TIME  # wait for QUIZ_QUESTION_WAIT_TIME seconds for response
 
                 logger.debug("time_at_start {}".format(time_at_start))
                 logger.debug("target_time {}".format(target_time))
@@ -118,8 +107,8 @@ class Quiz(commands.Cog):
                     logger.debug("while now {}".format(datetime.datetime.today().timestamp()))
                     try:
                         reaction, user = await self.bot.wait_for('reaction_add', timeout=5,
-                                                               check=lambda reaction1, user1: str(
-                                                                   reaction1.emoji) in emojis)
+                                                                 check=lambda reaction1, user1: str(
+                                                                     reaction1.emoji) in emojis)
                         logger.debug("{} reacted with {}".format(user.display_name, reaction))
                         # TODO: remove older reaction if user changes option
                         # message.remove_reaction(participant_response[user], user)
@@ -158,26 +147,30 @@ class Quiz(commands.Cog):
                 await ctx.send("No one scored any points. LOSERS!")
 
         elif arg.lower() == "stop":
-            QUIZ_MODE = False
+            self.QUIZ_MODE = False
             await ctx.send('```Quiz mode stopped```')
         elif arg.lower() == "easy":
-            QUIZ_DIFFICULTY = "easy"
+            self.QUIZ_DIFFICULTY = "easy"
             await ctx.send('```Quiz difficulty set to easy```')
         elif arg.lower() == "medium":
-            QUIZ_DIFFICULTY = "medium"
+            self.QUIZ_DIFFICULTY = "medium"
             await ctx.send('```Quiz difficulty set to medium```')
         elif arg.lower() == "hard":
-            QUIZ_DIFFICULTY = "hard"
+            self.QUIZ_DIFFICULTY = "hard"
             await ctx.send('```Quiz difficulty set to hard```')
         elif arg.isdigit():
             if int(arg) > 30:
                 await ctx.send('```Quiz: max number of questions cannot be greater than 30```')
             else:
-                QUIZ_MAX_QUESTIONS = int(arg)
-                await ctx.send('```Quiz: max number of questions set to {}```'.format(QUIZ_MAX_QUESTIONS))
+                self.QUIZ_MAX_QUESTIONS = int(arg)
+                await ctx.send('```Quiz: max number of questions set to {}```'.format(self.QUIZ_MAX_QUESTIONS))
         else:
             # TODO: add option to change quiz config settings
             # number of questions
             # mode : easy, medium, hard
             # delay: ?
             pass
+
+
+def setup(bot):
+    bot.add_cog(Quiz(bot))
