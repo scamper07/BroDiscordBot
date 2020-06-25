@@ -1,9 +1,5 @@
 .idea
-/token
 /venv/
-/messages_history.txt
-/api
-/twitch_client_id
-/twitch_app_access
-/discord.log
+/keys/
+/logs/
 __pycache__/

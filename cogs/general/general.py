@@ -1,26 +1,15 @@
-from discord.ext import commands
 import discord
-import asyncio
 import aiohttp
 import json
 import random
-import logging
-from logging.handlers import TimedRotatingFileHandler
+from discord.ext import commands
+from base_logger import logger
+from utils import get_advice
 
-import logging
-from logging.handlers import TimedRotatingFileHandler
-
-''' Initialize logging '''
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = TimedRotatingFileHandler(filename='discord.log', when="midnight", backupCount=5)
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s', datefmt='%d-%b-%y %H:%M:%S'))
-logger.addHandler(handler)
 
 class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self._last_member = None
 
     @commands.command(brief='Shows brief introduction of Bro Bot')
     async def intro(self, ctx):
@@ -29,7 +18,7 @@ class General(commands.Cog):
 
     @commands.command(brief='Bro shares random facts!')
     async def facts(self, ctx):
-        logger.debug("facts")
+        logger.debug("Generating a fact")
         wait_message = await ctx.send("One interesting fact coming right up...")
         async with ctx.typing():
             try:
@@ -46,7 +35,7 @@ class General(commands.Cog):
 
     @commands.command(brief='Puts out random xkcd comic!')
     async def xkcd(self, ctx):
-        logger.debug("xkcd")
+        logger.debug("Generating an xkcd comic")
         wait_message = await ctx.send("Comic time...")
         comic_number = random.randint(1, 2310)  # comic number range TODO:get dynamically
         logger.debug(comic_number)
@@ -66,20 +55,10 @@ class General(commands.Cog):
                 logger.exception(e)
                 await ctx.send('No xkcd for you')
 
-    @commands.command(brief='Bro insults')
-    async def insult(self, ctx):
-        logger.debug("insult")
-        wait_message = await ctx.send("Buckle up Butter cup...")
-        async with ctx.typing():
-            try:
-                session = aiohttp.ClientSession()
-                url = "https://insult.mattbas.org/api/insult.json"
-                async with session.get(url) as resp:
-                    data = await resp.read()
-                json_response = json.loads(data)
-                await session.close()
-                await wait_message.delete()
-                await ctx.send("{}".format(json_response['insult']))
-            except Exception as e:
-                logger.exception(e)
-                await ctx.send('No insult for you. Get a life')
+    @commands.command(brief='Bro gives life advices!')
+    async def advice(self, ctx):
+        await get_advice(ctx)
+
+
+def setup(bot):
+    bot.add_cog(General(bot))
