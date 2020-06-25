@@ -32,14 +32,11 @@ class TwitchNotifier(commands.Cog):
         client_id_path = os.path.join(ROOT_DIR, "keys/twitch_client_id")
         app_access_path = os.path.join(ROOT_DIR, "keys/twitch_app_access")
 
-        try:
-            with open(client_id_path) as f:
-                client_id = f.read().strip()
+        with open(client_id_path) as f:
+            client_id = f.read().strip()
 
-            with open(app_access_path) as f:
-                app_access_token = f.read().strip()
-        except Exception as e:
-            logger.exception(e)
+        with open(app_access_path) as f:
+            app_access_token = f.read().strip()
 
         url = "https://api.twitch.tv/helix/streams?user_login="  # Twitch get streams api
         games_url = "https://api.twitch.tv/helix/games?id="  # Twitch get game api
