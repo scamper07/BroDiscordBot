@@ -59,6 +59,24 @@ class General(commands.Cog):
     async def advice(self, ctx):
         await get_advice(ctx)
 
+    @commands.command(brief='Bro insults')
+    async def insult(self, ctx):
+        logger.debug("insult")
+        wait_message = await ctx.send("Buckle up Butter cup...")
+        async with ctx.typing():
+            try:
+                session = aiohttp.ClientSession()
+                url = "https://insult.mattbas.org/api/insult.json"
+                async with session.get(url) as resp:
+                    data = await resp.read()
+                json_response = json.loads(data)
+                await session.close()
+                await wait_message.delete()
+                await ctx.send("{}".format(json_response['insult']))
+            except Exception as e:
+                logger.exception(e)
+                await ctx.send('No insult for you. Get a life')
+
 
 def setup(bot):
     bot.add_cog(General(bot))
