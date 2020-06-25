@@ -13,7 +13,13 @@ class Admin(commands.Cog):
     @commands.command(brief='Turns on my Master\'s PC')
     async def switchon(self, ctx):
         logger.debug("Powering on PC")
-        if ctx.message.author.name == "Diego Delavega":
+        admin_id_path = os.path.join(ROOT_DIR, "keys/admin_id")
+        with open(admin_id_path) as f:
+            admin_id = f.read().strip()
+
+        logger.debug(ctx.message.author.id)
+        logger.debug(admin_id)
+        if ctx.message.author.id == int(admin_id):
             session = aiohttp.ClientSession()
             data = {"action": "on"}
             api_path = os.path.join(ROOT_DIR, "keys/api")
