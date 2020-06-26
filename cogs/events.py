@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 from base_logger import logger
-from config import COMMAND_PREFIX, WAR_CRY_LIST, GAME_MODE, MEMBER_UPDATE_COUNT
-from pyKey import press
+from config import COMMAND_PREFIX, WAR_CRY_LIST, MEMBER_UPDATE_COUNT
+# from pyKey import press
 
 
 class Events(commands.Cog):
@@ -18,6 +18,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        logger.debug(message.content)
         if message.author == self.bot.user:
             return
 
@@ -62,7 +63,7 @@ class Events(commands.Cog):
             await message.channel.send("***STREAM STREAM STREAM!***")
             await message.channel.send(random.choice(WAR_CRY_LIST), tts=True)
         '''
-
+        '''
         if GAME_MODE:
             try:
                 if message.content[:2].lower() == "up" and int(message.content[-1]):
@@ -96,7 +97,7 @@ class Events(commands.Cog):
                 await message.channel.send("```Empty/Invalid entry```")
             except Exception as e:
                 logger.exception(e)
-
+        '''
         # await self.bot.process_commands(message)
 
     '''
