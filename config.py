@@ -39,3 +39,17 @@ WAR_CRY_LIST = ['LET\'S GO BROS!',
                 'The Force will be with you. Always.',
                 'The time to fight is now bros.'
                 ]
+
+
+# Gameboy key mapping
+GAMEBOY_A = 'z'
+GAMEBOY_B = 'x'
+GAMEBOY_L = 'a'
+GAMEBOY_R = 's'
+GAMEBOY_UP = 'UP'
+GAMEBOY_DOWN = 'DOWN'
+GAMEBOY_LEFT = 'LEFT'
+GAMEBOY_RIGHT = 'RIGHT'
+GAMEBOY_START = 'c'
+GAMEBOY_SELECT = 'v'
+GAMEBOY_HOTKEY = 'M'

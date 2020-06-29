@@ -3,7 +3,7 @@ import os
 
 import discord
 from discord.ext import commands
-from config import COMMAND_PREFIX, GAMEBOY_TEST_CHANNEL_ID
+from config import COMMAND_PREFIX, GAMEBOY_TEST_CHANNEL_ID, GAMEBOY_A, GAMEBOY_HOTKEY, GAMEBOY_UP, GAMEBOY_DOWN, GAMEBOY_B, GAMEBOY_L, GAMEBOY_R, GAMEBOY_LEFT, GAMEBOY_RIGHT, GAMEBOY_SELECT, GAMEBOY_START
 from base_logger import logger
 from utils import VirtualKeyboard, take_screenshot
 
@@ -39,11 +39,11 @@ class Gameboy(commands.Cog):
                     logger.debug("Done")
                     await asyncio.sleep(1)
                     logger.debug("Starting GBA...")
-                    await self.keyboard.send_keyboard_input("z")
+                    await self.keyboard.send_keyboard_input(GAMEBOY_A)
                     logger.debug("Done")
                     await asyncio.sleep(1)
                     logger.debug("Starting Pokemon...")
-                    await self.keyboard.send_keyboard_input("z")
+                    await self.keyboard.send_keyboard_input(GAMEBOY_A)
                     await asyncio.sleep(25)
                     logger.debug("Done")
                     await self.load_game_state()
@@ -75,18 +75,18 @@ class Gameboy(commands.Cog):
                     await ctx.send('Stopping game safely. Please wait.')
                     await self.save_game_state()
                     logger.debug("Stopping game")
-                    await self.keyboard.send_keyboard_shortcut(['M', 'C'])
+                    await self.keyboard.send_keyboard_shortcut([GAMEBOY_HOTKEY, GAMEBOY_START])
                     logger.debug("Done")
                     await asyncio.sleep(10)
                     logger.debug("Stopping Retropie")
                     '''
                     send_keyboard_input("v")  # Menu
                     await asyncio.sleep(1)
-                    send_keyboard_input("UP")  # up
+                    send_keyboard_input(GAMEBOY_UP)  # up
                     await asyncio.sleep(1)
                     send_keyboard_input("v")  # QUIT
                     await asyncio.sleep(1)
-                    send_keyboard_input("UP")  # QUIT emu
+                    send_keyboard_input(GAMEBOY_UP)  # QUIT emu
                     await asyncio.sleep(1)
                     send_keyboard_input("v")  #
                     await asyncio.sleep(1)
@@ -138,13 +138,13 @@ class Gameboy(commands.Cog):
     async def save_game_state(self):
         # m + f2
         logger.debug("saving game state")
-        await self.keyboard.send_keyboard_shortcut(['M', 'F2'])
+        await self.keyboard.send_keyboard_shortcut([GAMEBOY_HOTKEY, 'F2'])
         logger.debug("done")
 
     async def load_game_state(self):
         # m + f4
         logger.debug("loading game state")
-        await self.keyboard.send_keyboard_shortcut(['M', 'F4'])
+        await self.keyboard.send_keyboard_shortcut([GAMEBOY_HOTKEY, 'F4'])
         logger.debug("done")
 
     @commands.Cog.listener()
@@ -156,30 +156,30 @@ class Gameboy(commands.Cog):
         if self.game_mode:
             invalid_input_flag = False
             try:
-                if message.content[:2].lower() == "up" and int(message.content[-1]):
+                if message.content[:2].lower() == "up" and int(message.content[-1]) <= 5:
                     for i in range(int(message.content[-1])):
-                        await self.keyboard.send_keyboard_input("UP")
-                elif message.content[:4].lower() == "down" and int(message.content[-1]):
+                        await self.keyboard.send_keyboard_input(GAMEBOY_UP)
+                elif message.content[:4].lower() == "down" and int(message.content[-1]) <= 5:
                     for i in range(int(message.content[-1])):
-                        await self.keyboard.send_keyboard_input("DOWN")
-                elif message.content[:4].lower() == "left" and int(message.content[-1]):
+                        await self.keyboard.send_keyboard_input(GAMEBOY_DOWN)
+                elif message.content[:4].lower() == "left" and int(message.content[-1]) <= 5:
                     for i in range(int(message.content[-1])):
-                        await self.keyboard.send_keyboard_input("LEFT")
-                elif message.content[:5].lower() == "right" and int(message.content[-1]):
+                        await self.keyboard.send_keyboard_input(GAMEBOY_LEFT)
+                elif message.content[:5].lower() == "right" and int(message.content[-1]) <= 5:
                     for i in range(int(message.content[-1])):
-                        await self.keyboard.send_keyboard_input("RIGHT")
+                        await self.keyboard.send_keyboard_input(GAMEBOY_RIGHT)
                 elif message.content.lower() == "a":
-                    await self.keyboard.send_keyboard_input("z")
+                    await self.keyboard.send_keyboard_input(GAMEBOY_A)
                 elif message.content.lower() == "b":
-                    await self.keyboard.send_keyboard_input("x")
+                    await self.keyboard.send_keyboard_input(GAMEBOY_B)
                 elif message.content.lower() == "l":
-                    await self.keyboard.send_keyboard_input("a")
+                    await self.keyboard.send_keyboard_input(GAMEBOY_L)
                 elif message.content.lower() == "r":
-                    await self.keyboard.send_keyboard_input("s")
+                    await self.keyboard.send_keyboard_input(GAMEBOY_R)
                 elif message.content.lower() == "select":
-                    await self.keyboard.send_keyboard_input("v")
+                    await self.keyboard.send_keyboard_input(GAMEBOY_SELECT)
                 elif message.content.lower() == "start":
-                    await self.keyboard.send_keyboard_input("c")
+                    await self.keyboard.send_keyboard_input(GAMEBOY_START)
                 else:
                     logger.debug("Invalid game input!")
                     invalid_input_flag = True
