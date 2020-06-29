@@ -2,6 +2,7 @@ from discord.ext import tasks, commands
 from base_logger import logger
 from config import ALPHA_MALES_GOODIE_BAG_CHANNEL
 from utils import get_advice
+from datetime import date
 
 
 class DailyAdvice(commands.Cog):
@@ -15,6 +16,7 @@ class DailyAdvice(commands.Cog):
     @tasks.loop(hours=24.0)
     async def daily_advices(self):
         message_channel = self.bot.get_channel(ALPHA_MALES_GOODIE_BAG_CHANNEL)
+        await message_channel.send("**Today's advice ({})**".format(date.today()))
         await get_advice(message_channel)
 
     @daily_advices.before_loop
