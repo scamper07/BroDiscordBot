@@ -1,3 +1,5 @@
+import datetime
+
 import aiohttp
 import json
 import uinput
@@ -17,8 +19,7 @@ async def get_advice(message_channel):
             data = await resp.read()
         json_response = json.loads(data)
         await session.close()
-        await wait_message.delete()
-        await message_channel.send('*\"{}\"*'.format(json_response['slip']['advice']))
+        await wait_message.edit(content='*\"{}\"*'.format(json_response['slip']['advice']))
     except Exception as e:
         logger.exception(e)
         await message_channel.send('Sorry can\'t think of anything')
@@ -114,3 +115,46 @@ def take_screenshot(filename="test.png"):
     os.system("raspi2png -p {}".format(filename))
     return 0
 
+
+async def get_news(message_channel):
+    logger.debug("news")
+    wait_message = await message_channel.send("Bringing you the latest BREAKING NEWS!")
+
+    try:
+        session = aiohttp.ClientSession()
+
+        # read Bot Token from token file in keys folder
+        with open('keys/news_api') as f:
+            news_api_key = f.read()
+
+        news_url = "https://newsapi.org/v2/top-headlines?country=in&apiKey={}".format(news_api_key)
+        async with session.get(news_url) as resp:
+            data = await resp.read()
+        json_response = json.loads(data)
+        await session.close()
+        news_message = ""
+        for index in range(10):
+            title = json_response['articles'][index]['title']
+            title_no_source = title[:title.find(" - ")]
+            news_message += "{}. {}\n".format(index+1, title_no_source)
+
+        # for index in range(10):
+        #     news_message += "{}. {}\n".format(index+1, json_response['articles'][index]['url'])
+
+        await wait_message.edit(content="```TOP HEADLINES:\n{}```".format(news_message))
+    except Exception as e:
+        logger.exception(e)
+        await message_channel.send("No news for you.")
+
+
+async def sleep_until_time(trigger_time):
+    # trigger_time needs be in hh:mm 24-hr format
+    # ex: 12:30
+    hour = int(trigger_time.split(':')[0])
+    minute = int(trigger_time.split(':')[1])
+    t = datetime.datetime.today()
+    future = datetime.datetime(t.year, t.month, t.day, hour, minute)
+    if t.hour >= hour:
+        future += datetime.timedelta(days=1)
+    logger.debug("Sleeping for {} seconds...".format((future - t).seconds))
+    await asyncio.sleep((future - t).seconds)

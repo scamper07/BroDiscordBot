@@ -4,7 +4,7 @@ import json
 import random
 from discord.ext import commands
 from base_logger import logger
-from utils import get_advice
+from utils import get_advice, get_news
 
 
 class General(commands.Cog):
@@ -27,8 +27,7 @@ class General(commands.Cog):
                     data = await resp.read()
                 json_response = json.loads(data)
                 await session.close()
-                await wait_message.delete()
-                await ctx.send("{}".format(json_response['data']))
+                await wait_message.edit(content="{}".format(json_response['data']))
             except Exception as e:
                 logger.exception(e)
                 await ctx.send('Sorry can\'t think of anything')
@@ -47,10 +46,9 @@ class General(commands.Cog):
                     data = await resp.read()
                 json_response = json.loads(data)
                 await session.close()
-                await wait_message.delete()
                 embed = discord.Embed(title=json_response['title'])
                 embed.set_image(url=json_response['img'])
-                await ctx.send(embed=embed)
+                await wait_message.edit(content='', embed=embed)
             except Exception as e:
                 logger.exception(e)
                 await ctx.send('No xkcd for you')
@@ -59,7 +57,7 @@ class General(commands.Cog):
     async def advice(self, ctx):
         await get_advice(ctx)
 
-    @commands.command(brief='Bro insults')
+    @commands.command(brief='Bro insults XD')
     async def insult(self, ctx):
         logger.debug("insult")
         wait_message = await ctx.send("Buckle up Butter cup...")
@@ -71,11 +69,14 @@ class General(commands.Cog):
                     data = await resp.read()
                 json_response = json.loads(data)
                 await session.close()
-                await wait_message.delete()
-                await ctx.send("{}".format(json_response['insult']))
+                await wait_message.edit(content="{}".format(json_response['insult']))
             except Exception as e:
                 logger.exception(e)
                 await ctx.send('No insult for you. Get a life')
+
+    @commands.command(brief='Bro shares BREAKING NEWS!!!')
+    async def news(self, ctx):
+        await get_news(ctx)
 
 
 def setup(bot):

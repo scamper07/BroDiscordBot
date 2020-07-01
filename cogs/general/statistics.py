@@ -129,8 +129,7 @@ class Statistics(commands.Cog):
                     embed.add_field(name=top_name, value=top_string, inline=False)
                 logger.debug("*****************************")
 
-        await wait_message.delete()
-        await ctx.send(embed=embed)
+        await wait_message.edit(content='', embed=embed)
 
     @stats.error
     async def info_error(self, ctx, error):

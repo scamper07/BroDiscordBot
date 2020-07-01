@@ -10,7 +10,8 @@ BOT_STARTUP_COGS_LIST = ['cogs.events',
                          'cogs.background.daily_advice',
                          'cogs.background.twitch_stream_notifier',
                          'cogs.admin.admin_actions',
-                         'cogs.games.gameboy'
+                         'cogs.games.gameboy',
+                         'cogs.background.daily_news',
                          ]
 
 bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='The Bro Bot')
