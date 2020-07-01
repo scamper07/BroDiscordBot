@@ -14,7 +14,10 @@ class General(commands.Cog):
     @commands.command(brief='Shows brief introduction of Bro Bot')
     async def intro(self, ctx):
         logger.debug("Sending intro message")
-        await ctx.send('```Say Bro and I\'ll bro you back```')
+        # await ctx.send('```Say Bro and I\'ll bro you back```\n')
+        embed = discord.Embed(title="Say Bro and I\'ll bro you back")
+        embed.set_image(url="https://media.giphy.com/media/l0K45p4XQTVmyClMs/giphy.gif")
+        await ctx.send(embed=embed)
 
     @commands.command(brief='Bro shares random facts!')
     async def facts(self, ctx):
