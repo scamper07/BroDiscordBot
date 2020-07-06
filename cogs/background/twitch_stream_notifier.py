@@ -15,7 +15,8 @@ class TwitchNotifier(commands.Cog):
                           "code_name_47_",
                           "bamboozle_heck",
                           "kbharathi",
-                          "supersonic_mk"
+                          "supersonic_mk",
+                          "scamper07"
                           ]  # Twitch user names
         for player in self.streamers:
             self.live_status_dict.update({player: TWITCH_NOT_STREAMING})

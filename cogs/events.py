@@ -18,7 +18,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        logger.debug(message.content)
+        # logger.debug(message.content)
         if message.author == self.bot.user:
             return
 

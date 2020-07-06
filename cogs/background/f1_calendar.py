@@ -4,18 +4,18 @@ import discord
 from aiohttp import web
 from discord.ext import commands
 from base_logger import logger
-from config import TEST_CHANNEL_ID, ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID
+from config import TEST_CHANNEL_ID, ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID, F1_DISCUSSION_CHANNEL_ID
 
 
 class WebHookListener(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # self.channel_list = [TEST_CHANNEL_ID]
-        self.channel_list = [ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID]
+        self.channel_list = [ALPHA_MALES_GOODIE_BAG_CHANNEL, F1_DISCUSSION_CHANNEL_ID]
 
     async def webserver(self):
         async def handler(request):
-            logger.info(request)
+            logger.debug(request)
             # res = request.get_json()
             try:
                 res = await request.json()
