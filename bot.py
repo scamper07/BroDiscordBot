@@ -12,6 +12,7 @@ BOT_STARTUP_COGS_LIST = ['cogs.events',
                          'cogs.admin.admin_actions',
                          'cogs.games.gameboy',
                          'cogs.background.daily_news',
+                         'cogs.background.f1_calendar'
                          ]
 
 bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='The Bro Bot')
