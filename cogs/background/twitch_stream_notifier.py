@@ -72,10 +72,8 @@ class TwitchNotifier(commands.Cog):
                                 logger.debug("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
 
                                 await channel.send(
-                                    "**{} is live on Twitch playing {}!**".format(json_response['data'][0]['user_name'],
-                                                                                  game_response['data'][0]['name']))
-                                await channel.send(
-                                    "https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
+                                    "**{} is live on Twitch playing {}!**\nhttps://www.twitch.tv/{}".format(json_response['data'][0]['user_name'],
+                                                                                  game_response['data'][0]['name'], json_response['data'][0]['user_name']))
                             self.live_status_dict[streamer] = TWITCH_STARTED_STREAMING
                         else:
                             logger.debug("{} is still live. not sending".format(streamer))
