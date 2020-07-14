@@ -158,3 +158,17 @@ async def sleep_until_time(trigger_time):
         future += datetime.timedelta(days=1)
     logger.debug("Sleeping for {} seconds...".format((future - t).seconds))
     await asyncio.sleep((future - t).seconds)
+
+
+async def get_public_url():
+    session = aiohttp.ClientSession()
+    url = "http://localhost:4040/api/tunnels/"
+    async with session.get(url) as resp:
+        data = await resp.read()
+        data_json = json.loads(data)
+    await session.close()
+
+    msg = ""
+    for i in data_json['tunnels']:
+        msg = msg + i['public_url'] + '\n'
+    return msg

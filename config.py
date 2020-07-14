@@ -57,5 +57,9 @@ GAMEBOY_HOTKEY = 'M'
 
 DEBUG_FLAG_FILE = "/home/pi/debug"
 
-DAILY_ADVICE_TIME = "7:30"  # am
-DAILY_NEWS_TIME = "8:30"  # am
+DAILY_ADVICE_TIME = "6:45"  # am
+DAILY_NEWS_TIME = "9:30"  # am
+
+admin_id_path = os.path.join(ROOT_DIR, "keys/admin_id")
+with open(admin_id_path) as f:
+    ADMIN_ID = f.read().strip()
