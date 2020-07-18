@@ -105,14 +105,15 @@ class Admin(commands.Cog):
                             embed.add_field(name=line[0], value=line[1], inline=True)
 
                 # Raspberry Pi Only!!!
-                temp = subprocess.Popen(['/opt/vc/bin/vcgencmd', 'measure_temp'], stdout=subprocess.PIPE)
-                for line in temp.stdout:
-                    line = line.decode('utf-8').strip('\n').split('=')
-                    if len(line) == 2:
-                        embed.add_field(name="CPU Temp", value=line[1], inline=True)
+                if os.uname()[1] == "raspberrypi":
+                    temp = subprocess.Popen(['/opt/vc/bin/vcgencmd', 'measure_temp'], stdout=subprocess.PIPE)
+                    for line in temp.stdout:
+                        line = line.decode('utf-8').strip('\n').split('=')
+                        if len(line) == 2:
+                            embed.add_field(name="CPU Temp", value=line[1], inline=True)
 
-                url = await get_public_url()
-                embed.add_field(name="Public URL", value=url, inline=False)
+                    url = await get_public_url()
+                    embed.add_field(name="Public URL", value=url, inline=False)
 
                 await wait_message.edit(content='', embed=embed)
         else:
