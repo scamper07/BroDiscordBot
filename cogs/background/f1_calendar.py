@@ -26,7 +26,7 @@ class WebHookListener(commands.Cog):
                     gp_place = "Styria"
                 elif "hungar" in res['title'].lower():
                     gp_place = "Hungar"
-                elif "britain" in res['title'].lower():
+                elif "brit" in res['title'].lower():
                     gp_place = "Great%20Britain"
                 elif "anniversary" in res['title'].lower():
                     gp_place = "70th%20Anniversary"
