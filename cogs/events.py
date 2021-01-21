@@ -39,6 +39,7 @@ class Events(commands.Cog):
         if 'bye' in full_message_list:
             logger.debug("Sending bye message")
             await message.channel.send("Bye Bye {} bro".format(message.author.mention))
+            await message.author.send('👋')
 
         if 'good morning' in full_message or 'gm' in full_message_list:
             logger.debug("Sending gm message")

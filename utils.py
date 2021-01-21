@@ -135,7 +135,8 @@ async def get_news(message_channel):
         news_message = ""
         for index in range(10):
             title = json_response['articles'][index]['title']
-            title_no_source = title[:title.find(" - ")]
+            # title_no_source = title[:title.find(" - ")]
+            title_no_source = title
             news_message += "{}. {}\n".format(index+1, title_no_source)
 
         # for index in range(10):

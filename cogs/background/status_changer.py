@@ -1,7 +1,7 @@
 import discord
 from discord.ext import tasks, commands
 from base_logger import logger
-from config import COMMAND_PREFIX
+from config import COMMAND_PREFIX, ADMIN_ID
 from itertools import cycle
 
 
