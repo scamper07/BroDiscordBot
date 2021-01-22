@@ -26,7 +26,7 @@ class StatusChanger(commands.Cog):
                              discord.Activity(name='Catan', url="https://www.youtube.com/watch?v=yBLdQ1a4-JI",
                                               type=discord.ActivityType.streaming),
                              discord.Activity(name=f'{COMMAND_PREFIX}help', type=discord.ActivityType.listening),
-                             discord.Activity(name='Valorant', url="https://www.youtube.com/watch?v=b1cTSxu8O8c",
+                             discord.Activity(name='VALORANT', url="https://www.youtube.com/watch?v=b1cTSxu8O8c",
                                               type=discord.ActivityType.streaming),
                              ])
         self.change_status.start()

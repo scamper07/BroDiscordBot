@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from base_logger import logger
 from config import COMMAND_PREFIX
@@ -19,7 +20,8 @@ BOT_STARTUP_COGS_LIST = ['cogs.events',
                          'cogs.games.tictactoe',
                          ]
 
-bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='The Bro Bot')
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='The Bro Bot', intents=intents)
 
 if __name__ == '__main__':
     logger.debug("Bro Bot Startup...")

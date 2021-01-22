@@ -15,6 +15,7 @@ O = ":o:"
 class Tictactoe(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.game_mode = False
         self.board = [[".", ".", "."],
                       [".", ".", "."],
                       [".", ".", "."]
@@ -28,6 +29,7 @@ class Tictactoe(commands.Cog):
             await ctx.send("Starting game. Player plays 'X'. Enter input as x,y coordinate (valid range 0,0 to 2,2)\nExample: 1,2")
             logger.debug("Starting game")
             await ctx.send(self.beautify_board())
+            self.game_mode = True
             logger.debug("Done")
 
     def beautify_board(self):
@@ -91,11 +93,12 @@ class Tictactoe(commands.Cog):
 
         return False
 
-    def reset_board(self):
+    def reset_game(self):
         self.board = [[".", ".", "."],
                       [".", ".", "."],
                       [".", ".", "."]
                       ]
+        self.game_mode = False
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -104,6 +107,9 @@ class Tictactoe(commands.Cog):
             return
 
         try:
+            if not self.game_mode:  # to process messages only if game has started
+                return
+
             user_input = message.content.split(',')
             if len(user_input) > 2:
                 return
@@ -112,15 +118,19 @@ class Tictactoe(commands.Cog):
                 self.board[int(user_input[0])][int(user_input[1])] = self.player
                 await message.channel.send(self.beautify_board())
                 if self.hasWon(self.board):
-                    await message.channel.send("Congratulations! Player has won")
-                    self.reset_board()
+                    await message.channel.send("Congratulations! Player has won :trophy: :first_place:")
+                    self.reset_game()
+                    self.game_mode = False
                     return
                 elif self.hasWon(self.board) is None:
-                    await message.channel.send("Match drawn")
-                    self.reset_board()
+                    await message.channel.send("Match drawn :handshake:")
+                    self.reset_game()
+                    self.game_mode = False
                     return
 
                 await message.channel.send("Thinking...")
+                await asyncio.sleep(0.5)
+
                 #await message.channel.send("https://tenor.com/view/smart-hangover-alan-genius-zach-galifianakis-gif-5568438")
 
                 post_data = {
@@ -134,13 +144,13 @@ class Tictactoe(commands.Cog):
                             self.board[int(user_input["move"][0])][int(user_input["move"][1])] = self.computer
                             await message.channel.send(self.beautify_board())
                             if self.hasWon(self.board):
-                                await message.channel.send("Bro wins!")
-                                self.reset_board()
+                                await message.channel.send("Bro wins! :robot:")
+                                self.reset_game()
                             elif self.hasWon(self.board) is None:
-                                await message.channel.send("Match drawn")
-                                self.reset_board()
+                                await message.channel.send("Match drawn :handshake:")
+                                self.reset_game()
             else:
-                await message.channel.send("Position already filled. Try some other position...")
+                await message.channel.send("Position already filled. Try some other coordinate...")
 
         except ValueError as vale:
             logger.exception(vale)
