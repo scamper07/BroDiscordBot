@@ -57,8 +57,8 @@ class Events(commands.Cog):
             logger.debug("Sending online message")
             await message.channel.send("I'm online too bro")
 
-        if "tictactoe" in full_message:
-            await message.channel.send("Kai is trying to build this. Coming soon..\n P.S : I hope so - Pavan")
+        # if "tictactoe" in full_message:
+        #     await message.channel.send("Kai is trying to build this. Coming soon..\n P.S : I hope so - Pavan")
             # await ttt.start_game(message)
 
         '''

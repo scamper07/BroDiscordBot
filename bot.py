@@ -15,7 +15,8 @@ BOT_STARTUP_COGS_LIST = ['cogs.events',
                          'cogs.background.f1_calendar',
                          #'cogs.general.music',
                          'cogs.background.status_changer',
-                         'cogs.background.sleep_remainder'
+                         'cogs.background.sleep_remainder',
+                         'cogs.games.tictactoe',
                          ]
 
 bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='The Bro Bot')
