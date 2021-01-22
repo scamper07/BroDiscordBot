@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from base_logger import logger
 from config import COMMAND_PREFIX
@@ -10,14 +11,17 @@ BOT_STARTUP_COGS_LIST = ['cogs.events',
                          'cogs.background.daily_advice',
                          'cogs.background.twitch_stream_notifier',
                          'cogs.admin.admin_actions',
-                         'cogs.games.gameboy',
+                         #'cogs.games.gameboy',
                          'cogs.background.daily_news',
                          'cogs.background.f1_calendar',
-                         'cogs.general.music',
-                         'cogs.background.status_changer'
+                         #'cogs.general.music',
+                         'cogs.background.status_changer',
+                         'cogs.background.sleep_remainder',
+                         'cogs.games.tictactoe',
                          ]
 
-bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='The Bro Bot')
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='The Bro Bot', intents=intents)
 
 if __name__ == '__main__':
     logger.debug("Bro Bot Startup...")

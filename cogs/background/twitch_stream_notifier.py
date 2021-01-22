@@ -61,6 +61,7 @@ class TwitchNotifier(commands.Cog):
 
                     # if data not empty, user is streaming
                     if json_response['data']:
+                        # TODO: if oAuth token gets expired, json wont have data field, need to regen token.
                         if self.live_status_dict[streamer] == TWITCH_NOT_STREAMING:
                             game_id = json_response['data'][0]['game_id']
 

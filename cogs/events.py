@@ -12,8 +12,11 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         # Changes the bot's status
-        activity = discord.Activity(name=f'{COMMAND_PREFIX}help', type=discord.ActivityType.listening)
-        await self.bot.change_presence(activity=activity)
+        # activity = discord.Activity(name=f'{COMMAND_PREFIX}help in {len(self.bot.guilds)} servers', type=discord.ActivityType.listening)
+        # await self.bot.change_presence(activity=activity)
+        logger.debug("No of servers, bot is present in : {}".format(len(self.bot.guilds)))
+        for guild in self.bot.guilds:
+            logger.debug(guild.name)
         logger.debug('Bot is online!')
 
     @commands.Cog.listener()
@@ -36,6 +39,7 @@ class Events(commands.Cog):
         if 'bye' in full_message_list:
             logger.debug("Sending bye message")
             await message.channel.send("Bye Bye {} bro".format(message.author.mention))
+            await message.author.send('👋')
 
         if 'good morning' in full_message or 'gm' in full_message_list:
             logger.debug("Sending gm message")
@@ -53,8 +57,8 @@ class Events(commands.Cog):
             logger.debug("Sending online message")
             await message.channel.send("I'm online too bro")
 
-        if "tictactoe" in full_message:
-            await message.channel.send("Kai is trying to build this. Coming soon..\n P.S : I hope so - Pavan")
+        # if "tictactoe" in full_message:
+        #     await message.channel.send("Kai is trying to build this. Coming soon..\n P.S : I hope so - Pavan")
             # await ttt.start_game(message)
 
         '''

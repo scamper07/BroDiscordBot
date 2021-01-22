@@ -59,6 +59,7 @@ DEBUG_FLAG_FILE = "/home/pi/debug"
 
 DAILY_ADVICE_TIME = "6:45"  # am
 DAILY_NEWS_TIME = "9:30"  # am
+DAILY_SLEEP_TIME = "0:00"
 
 admin_id_path = os.path.join(ROOT_DIR, "keys/admin_id")
 with open(admin_id_path) as f:

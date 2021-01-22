@@ -24,7 +24,7 @@ class DailyAdvice(commands.Cog):
 
         for channel in self.channel_list:
             message_channel = self.bot.get_channel(channel)
-            await message_channel.send("**Today's advice for the bros ({})**".format(date.today().strftime("%d/%m/%Y")))
+            await message_channel.send("**Today's advice for the bros**")
             await get_advice(message_channel)
 
     @daily_advices.before_loop
