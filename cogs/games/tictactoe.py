@@ -3,7 +3,7 @@ import aiohttp
 from discord.ext import commands
 from base_logger import logger
 
-url = "https://tictactoe.loca.lt/api/v1/board"
+url = "http://localhost:8080/api/v1/board"
 DOT = ":white_medium_small_square:"
 X = ":x:"
 O = ":o:"
@@ -123,16 +123,16 @@ class Tictactoe(commands.Cog):
             if not self.game_mode:  # to process messages only if game has started
                 return
 
-            if self.bot_thinking:
-                await message.channel.send("Please wait. Bot still thinking...")
-                return
-
             user_input = message.content.split(',')
             # validations
             if len(user_input) > 2:
                 return
 
             if int(user_input[0]) < 0 or int(user_input[0]) > 2 or int(user_input[1]) < 0 or int(user_input[1]) > 2:
+                return
+
+            if self.bot_thinking:
+                await message.channel.send("Please wait. Bot still thinking...")
                 return
 
             game = games[message.guild.id]
