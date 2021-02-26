@@ -132,27 +132,29 @@ class Tictactoe(commands.Cog):
                 return
 
             if self.bot_thinking:
-                await message.channel.send("Please wait. Bot still thinking...")
+                await message.channel.send("Slow down Bro. Try again...")
                 return
 
             game = games[message.guild.id]
 
             # adding check to see if position is already filled
             if game.board[int(user_input[0])][int(user_input[1])] == ".":
+                self.bot_thinking = True  # added flag to handle user input spam while bot is executing api
                 game.board[int(user_input[0])][int(user_input[1])] = game.player
                 await message.channel.send(game.beautify_board())
                 if game.hasWon(game.board):
                     await message.channel.send("Congratulations! Player has won :trophy: :first_place:")
                     del games[message.guild.id]     # delete game instance
+                    self.bot_thinking = False
                     logger.debug(games)
                     return
                 elif game.hasWon(game.board) is None:
                     await message.channel.send("Match drawn :handshake:")
                     del games[message.guild.id]     # delete game instance
+                    self.bot_thinking = False
                     logger.debug(games)
                     return
 
-                self.bot_thinking = True    # added flag to handle user input spam while bot is executing api
                 await message.channel.send("Thinking...")
                 # await asyncio.sleep(0.25)
 
