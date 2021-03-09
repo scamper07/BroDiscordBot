@@ -60,6 +60,13 @@ class Twitch(commands.Cog):
         else:
             await ctx.send("Provide a streamer name whose streams you want to be notified")
 
+    @commands.command(brief='Get list of subscribed streamers whose streams will be notified', aliases=['ts'])
+    async def twitchsubscription(self, ctx):
+        if self.streamers:
+            await ctx.send("```Notifying streams from \n{}```".format('\n'.join([str(elem) for elem in self.streamers])))
+        else:
+            await ctx.send("```No streamers to notify. Add streamers using .twitchnotify```")
+
     @tasks.loop(minutes=5)
     async def twitch_notifier(self):
         await self.bot.wait_until_ready()
@@ -79,6 +86,7 @@ class Twitch(commands.Cog):
                    'Authorization': 'Bearer ' + app_access_token,
                    }
 
+        self.streamers = []
         path = Path(__file__).parent / "../../data/streamers.txt"
         with open(path, "r") as f:
             for line in f:
@@ -107,26 +115,26 @@ class Twitch(commands.Cog):
                         if self.live_status_dict[streamer] == TWITCH_NOT_STREAMING:
                             try:
                                 game_id = json_response['data'][0]['game_id']
+                                if game_id:
+                                    # get info on game the user is playing
+                                    async with session.get(games_url + game_id, headers=headers) as resp:
+                                        game_data = await resp.read()
+                                        game_response = json.loads(game_data)
+                                        logger.debug(game_response)  # size: 140 bytes
+                                        logger.debug("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
 
-                                # get info on game the user is playing
-                                async with session.get(games_url + game_id, headers=headers) as resp:
-                                    game_data = await resp.read()
-                                    game_response = json.loads(game_data)
-                                    logger.debug(game_response)  # size: 140 bytes
-                                    logger.debug("https://www.twitch.tv/{}".format(json_response['data'][0]['user_name']))
-
+                                        await channel.send(
+                                            "**{} is live on Twitch playing {}!**\nhttps://www.twitch.tv/{}".format(json_response['data'][0]['user_name'],
+                                                                                          game_response['data'][0]['name'], json_response['data'][0]['user_name']))
+                                else:
                                     await channel.send(
-                                        "**{} is live on Twitch playing {}!**\nhttps://www.twitch.tv/{}".format(json_response['data'][0]['user_name'],
-                                                                                      game_response['data'][0]['name'], json_response['data'][0]['user_name']))
-                            except KeyError as e:
-                                logger.exception(e)
-                                await channel.send(
-                                    "**{} is live on Twitch!**\nhttps://www.twitch.tv/{}".format(
-                                        json_response['data'][0]['user_name'], json_response['data'][0]['user_name']))
+                                        "**{} is live on Twitch!**\nhttps://www.twitch.tv/{}".format(
+                                            json_response['data'][0]['user_name'],
+                                            json_response['data'][0]['user_name']))
+
+                                self.live_status_dict[streamer] = TWITCH_STARTED_STREAMING
                             except Exception as e:
                                 logger.exception(e)
-                            finally:
-                                self.live_status_dict[streamer] = TWITCH_STARTED_STREAMING
                         else:
                             logger.debug("{} is still live. not sending".format(streamer))
                             self.live_status_dict[streamer] = TWITCH_STILL_STREAMING
