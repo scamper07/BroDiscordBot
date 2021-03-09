@@ -127,7 +127,7 @@ async def get_news(message_channel):
         with open('keys/news_api') as f:
             news_api_key = f.read()
 
-        news_url = "https://newsapi.org/v2/top-headlines?language=en&apiKey={}".format(news_api_key)
+        news_url = "https://newsapi.org/v2/top-headlines?sources=bbc-news&language=en&apiKey={}".format(news_api_key)
         async with session.get(news_url) as resp:
             data = await resp.read()
         json_response = json.loads(data)

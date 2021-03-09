@@ -1,8 +1,11 @@
 import discord
+import nltk
 from discord.ext import commands
-from config import stats_brief, COMMAND_PREFIX
+from config import stats_brief, COMMAND_PREFIX, ADDITIONAL_STOPWORDS
 from base_logger import logger
 from collections import Counter
+from nltk.corpus import stopwords
+nltk.download('stopwords')
 
 
 class Statistics(commands.Cog):
@@ -47,18 +50,25 @@ class Statistics(commands.Cog):
                     # messages = await channel.history(limit=None).flatten()
                     messages = await ctx.channel.history(limit=None).flatten()
                     logger.debug("Total messages: {}".format(len(messages)))
-                    embed.add_field(name="Total messages", value=str(len(messages)), inline=False)
+                    embed.add_field(name="Total messages in this channel", value=str(len(messages)), inline=False)
                     authors_count = Counter()
                     word_count = Counter()
                     message_list = list()
                     bro_in_message_count = 0
+
+                    # pre processing
+                    full_stopwords = stopwords.words('english')
+                    full_stopwords.extend(ADDITIONAL_STOPWORDS)
                     for message in messages:
                         if "bro" in str(message.content).lower():
                             bro_in_message_count += 1
                         authors_count.update({message.author.name: 1})
-                        message_list += str(message.content).split()
+                        word_list = message.content.split()
+                        filtered_words = [word for word in word_list if word not in full_stopwords]
+                        message_list += filtered_words
                     word_count.update(message_list)
 
+                    authors_count.pop('notDiegoDelavega', None)     # removing test users from stat
                     top = authors_count.most_common(1)
                     logger.debug("Most talkative bro: {} talked {} times".format(top[0][0], top[0][1]))
                     value = str(top[0][0] if ctx.guild.get_member_named(top[0][0]) is None else ctx.guild.get_member_named(
