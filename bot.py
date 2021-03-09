@@ -25,6 +25,7 @@ bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='The Bro Bot', int
 
 if __name__ == '__main__':
     logger.debug("Bro Bot Startup...")
+    
     # load initial cogs
     for cog in BOT_STARTUP_COGS_LIST:
         try:
