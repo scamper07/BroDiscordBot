@@ -1,10 +1,16 @@
 import discord
 import nltk
 from discord.ext import commands
+from discord_slash import cog_ext, SlashContext
+from discord_slash.utils import manage_commands
+
 from config import stats_brief, COMMAND_PREFIX, ADDITIONAL_STOPWORDS
 from base_logger import logger
 from collections import Counter
 from nltk.corpus import stopwords
+
+from utils import embed_send
+
 nltk.download('stopwords')
 
 
@@ -14,8 +20,27 @@ class Statistics(commands.Cog):
 
     @commands.command(brief=stats_brief, description='Shows stats for server or members')
     async def stats(self, ctx, user: discord.Member = None):
-        wait_message = await ctx.send("Processing... Please wait. This might take sometime")
         async with ctx.typing():
+            await self._stats(ctx, user)
+
+    @cog_ext.cog_slash(name="stats",
+                       description='Shows stats for server or members',
+                       #guild_ids=[207481917975560192, 572648167573684234],
+                       options=[manage_commands.create_option(
+                           name="user",
+                           description="\"\" for server stats, \"username\" for user stats",
+                           option_type=6,
+                           required=False
+                       ),
+                       ],
+                       )
+    async def statss(self, ctx: SlashContext, user: discord.Member = None):
+        await self._stats(ctx, user)
+
+    async def _stats(self, ctx, user: discord.Member):
+        try:
+            wait_message = await ctx.send("Processing... Please wait. This might take sometime")
+            embed = ""
             if not user:
                 try:
                     logger.debug("no user given...")
@@ -69,6 +94,7 @@ class Statistics(commands.Cog):
                     word_count.update(message_list)
 
                     authors_count.pop('notDiegoDelavega', None)     # removing test users from stat
+
                     top = authors_count.most_common(1)
                     logger.debug("Most talkative bro: {} talked {} times".format(top[0][0], top[0][1]))
                     value = str(top[0][0] if ctx.guild.get_member_named(top[0][0]) is None else ctx.guild.get_member_named(
@@ -91,7 +117,7 @@ class Statistics(commands.Cog):
                                 author if ctx.guild.get_member_named(author) is None else ctx.guild.get_member_named(
                                     author).mention) + " (" + str(message_count) + " messages) \n"
 
-                    embed.add_field(name="Top 5 Talkative Bros", value=top_authors, inline=False)
+                        embed.add_field(name="Top 5 Talkative Bros", value=top_authors, inline=False)
 
                     top_string = ""
                     if len(word_count) >= 5:
@@ -100,7 +126,7 @@ class Statistics(commands.Cog):
                             logger.debug("{}: {} times".format(word, count))
                             top_string += str(word) + " (" + str(count) + " times) \n"
 
-                    embed.add_field(name="Top 5 words used here", value=top_string, inline=False)
+                        embed.add_field(name="Top 5 words used here", value=top_string, inline=False)
 
                     logger.debug("Bro was mentioned {} times!".format(bro_in_message_count))
                     embed.add_field(name="Bro Count", value=str(bro_in_message_count), inline=False)
@@ -143,15 +169,21 @@ class Statistics(commands.Cog):
                     embed.add_field(name=top_name, value=top_string, inline=False)
                 logger.debug("*****************************")
 
-        await wait_message.edit(content='', embed=embed)
+            await wait_message.delete()
+            await embed_send(ctx, embed)
+            # await wait_message.edit(content='', embed=embed)
+            # await ctx.send(embed=embed)
+        except Exception as e:
+            logger.exception(e)
 
-    @stats.error
-    async def info_error(self, ctx, error):
-        if isinstance(error, commands.BadArgument):
-            await ctx.send('```Member not found...```')
-            await ctx.send(
-                '```Command usage:\n {}stats  : for server stats\n {}stats <username> : for user stats```'.format(
-                    COMMAND_PREFIX, COMMAND_PREFIX))
+
+    #@stats.error
+    #async def info_error(self, ctx, error):
+    #    if isinstance(error, commands.BadArgument):
+    #        await ctx.send('```Member not found...```')
+    #        await ctx.send(
+    #            '```Command usage:\n {}stats  : for server stats\n {}stats <username> : for user stats```'.format(
+    #                COMMAND_PREFIX, COMMAND_PREFIX))
 
 
 def setup(bot):

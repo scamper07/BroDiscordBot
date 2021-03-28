@@ -1,8 +1,6 @@
 import discord
 from discord.ext import commands
 from base_logger import logger
-from config import COMMAND_PREFIX, WAR_CRY_LIST, MEMBER_UPDATE_COUNT
-# from pyKey import press
 
 
 class Events(commands.Cog):
@@ -15,8 +13,6 @@ class Events(commands.Cog):
         # activity = discord.Activity(name=f'{COMMAND_PREFIX}help in {len(self.bot.guilds)} servers', type=discord.ActivityType.listening)
         # await self.bot.change_presence(activity=activity)
         logger.debug("No of servers, bot is present in : {}".format(len(self.bot.guilds)))
-        for guild in self.bot.guilds:
-            logger.debug(guild.name)
         logger.debug('Bot is online!')
 
     @commands.Cog.listener()

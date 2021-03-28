@@ -1,11 +1,12 @@
 import datetime
-
 import aiohttp
 import json
+import discord_slash
 import uinput
 import os
 import asyncio
-import sys
+import random
+import discord
 from base_logger import logger
 
 
@@ -17,12 +18,63 @@ async def get_advice(message_channel):
         session = aiohttp.ClientSession()
         async with session.get("https://api.adviceslip.com/advice") as resp:
             data = await resp.read()
-        json_response = json.loads(data)
+            json_response = json.loads(data)
         await session.close()
         await wait_message.edit(content='*\"{}\"*'.format(json_response['slip']['advice']))
     except Exception as e:
         logger.exception(e)
         await message_channel.send('Sorry can\'t think of anything')
+
+
+async def get_fact(message_channel):
+    logger.debug("advice")
+    wait_message = await message_channel.send("One interesting fact coming right up...")
+
+    try:
+        session = aiohttp.ClientSession()
+        async with session.get("https://useless-facts.sameerkumar.website/api") as resp:
+            data = await resp.read()
+            json_response = json.loads(data)
+        await session.close()
+        await wait_message.edit(content='*\"{}\"*'.format(json_response['data']))
+    except Exception as e:
+        logger.exception(e)
+        await message_channel.send('Sorry can\'t think of anything')
+
+
+async def get_insult(message_channel):
+    logger.debug("advice")
+    wait_message = await message_channel.send("Buckle up Butter cup...")
+
+    try:
+        session = aiohttp.ClientSession()
+        async with session.get("https://insult.mattbas.org/api/insult.json") as resp:
+            data = await resp.read()
+            json_response = json.loads(data)
+        await session.close()
+        await wait_message.edit(content='*\"{}\"*'.format(json_response['insult']))
+    except Exception as e:
+        logger.exception(e)
+        await message_channel.send('No insult for you.')
+
+
+async def get_xkcd(message_channel):
+    comic_number = random.randint(1, 2310)  # comic number range TODO:get dynamically
+    logger.debug(comic_number)
+    try:
+        session = aiohttp.ClientSession()
+        url = "https://xkcd.com/{}/info.0.json".format(comic_number)
+        async with session.get(url) as resp:
+            data = await resp.read()
+            json_response = json.loads(data)
+        await session.close()
+        embed = discord.Embed(title=json_response['title'])
+        embed.set_image(url=json_response['img'])
+        await embed_send(message_channel, embed)
+
+    except Exception as e:
+        logger.exception(e)
+        await message_channel.send('No comic for you')
 
 
 class VirtualKeyboard:
@@ -118,7 +170,7 @@ def take_screenshot(filename="test.png"):
 
 async def get_news(message_channel):
     logger.debug("news")
-    wait_message = await message_channel.send("Bringing you the latest BREAKING NEWS!")
+    # wait_message = await message_channel.send("Bringing you the latest BREAKING NEWS!")
 
     try:
         session = aiohttp.ClientSession()
@@ -130,19 +182,29 @@ async def get_news(message_channel):
         news_url = "https://newsapi.org/v2/top-headlines?sources=bbc-news&language=en&apiKey={}".format(news_api_key)
         async with session.get(news_url) as resp:
             data = await resp.read()
-        json_response = json.loads(data)
+            json_response = json.loads(data)
         await session.close()
+
+        embed_list = []
+        embed = ""
         news_message = ""
         for index in range(10):
-            title = json_response['articles'][index]['title']
-            # title_no_source = title[:title.find(" - ")]
-            title_no_source = title
-            news_message += "{}. {}\n".format(index+1, title_no_source)
+            embed = discord.Embed(title=json_response['articles'][index]['title'],
+                                  description=json_response['articles'][index]['description'],
+                                  url=json_response['articles'][index]['url'],
+                                  colour=discord.Color.darker_grey())
+            embed.set_thumbnail(url=json_response['articles'][index]['urlToImage'])
+            embed_list.append(embed)
+            news_message += "{}. {}\n".format(index + 1, json_response['articles'][index]['title'])
 
-        # for index in range(10):
-        #     news_message += "{}. {}\n".format(index+1, json_response['articles'][index]['url'])
-
-        await wait_message.edit(content="```TOP HEADLINES:\n{}```".format(news_message))
+        # await wait_message.edit(content="```TOP HEADLINES:\n```".format(news_message))
+        if isinstance(message_channel, discord.ext.commands.context.Context):
+            await message_channel.send(content="```TOP HEADLINES:\n{}```".format(news_message))
+        elif isinstance(message_channel, discord_slash.context.SlashContext):
+            await message_channel.send(content="```TOP HEADLINES```", embeds=embed_list)
+        else:
+            logger.error("invalid ctx type: {}".format(type(message_channel)))
+            await message_channel.send("ZZZzzzz")
     except Exception as e:
         logger.exception(e)
         await message_channel.send("No news for you.")
@@ -173,3 +235,14 @@ async def get_public_url():
     for i in data_json['tunnels']:
         msg = msg + i['public_url'] + '\n'
     return msg
+
+
+# checks ctx type and sends embed accordingly
+async def embed_send(ctx, embed):
+    if isinstance(ctx, discord.ext.commands.context.Context):
+        await ctx.send(embed=embed)
+    elif isinstance(ctx, discord_slash.context.SlashContext):
+        await ctx.send(embeds=[embed])
+    else:
+        logger.error("invalid ctx type: {}".format(type(ctx)))
+        await ctx.send("ZZZzzzz")
