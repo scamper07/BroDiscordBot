@@ -3,6 +3,9 @@ import asyncio
 import json
 import os
 from discord.ext import tasks, commands
+from discord_slash import cog_ext
+from discord_slash.utils import manage_commands
+
 from base_logger import logger
 from config import ROOT_DIR, TWITCH_NOT_STREAMING, TWITCH_STARTED_STREAMING, TWITCH_STILL_STREAMING, GENERAL_CHANNEL_ID, \
     TEST_CHANNEL_ID
@@ -21,8 +24,24 @@ class Twitch(commands.Cog):
         self.twitch_notifier.cancel()
 
     @commands.command(brief='Registers streamer whose streams will be notified', aliases=['tn'])
-    async def twitchnotify(self, ctx, arg=None):
-        if arg:
+    async def twitchnotify(self, ctx, username=None):
+        async with ctx.typing():
+            await self._twitchnotify(ctx, username)
+
+    @cog_ext.cog_slash(name="twitchnotify",
+                       description='Registers streamer whose streams will be notified',
+                       guild_ids=[698571675754692749],
+                       options=[manage_commands.create_option(
+                           name="username",
+                           description="Enter Twitch username",
+                           option_type=3,
+                           required=True)]
+                       )
+    async def twitchnotifys(self, ctx, username=None):
+        await self._twitchnotify(ctx, username)
+
+    async def _twitchnotify(self, ctx, username=None):
+        if username:
             client_id_path = os.path.join(ROOT_DIR, "keys/twitch_client_id")
             app_access_path = os.path.join(ROOT_DIR, "keys/twitch_app_access")
 
@@ -36,7 +55,7 @@ class Twitch(commands.Cog):
                        'Authorization': 'Bearer ' + app_access_token,
                        }
 
-            twitch_user_api = "https://api.twitch.tv/helix/users?login={}".format(arg)
+            twitch_user_api = "https://api.twitch.tv/helix/users?login={}".format(username)
             session = aiohttp.ClientSession()
             try:
                 async with session.get(twitch_user_api, headers=headers) as resp:
@@ -44,13 +63,13 @@ class Twitch(commands.Cog):
                     json_response = json.loads(data)
                     logger.debug(json_response)
 
-                    if data:
+                    if json_response['data']:
                         path = Path(__file__).parent / "../../data/streamers.txt"
                         with open(path, "a") as f:
-                            f.write(arg+'\n')
-                        await ctx.send("Streamer added. Will notify you when **{}** goes live!".format(arg))
+                            f.write(username+'\n')
+                        await ctx.send("Streamer added. Will notify you when **{}** goes live!".format(username))
                     else:
-                        await ctx.send("{} does not exists. Check streamer name and add again".format(arg))
+                        await ctx.send("{} does not exists. Check streamer name and add again".format(username))
 
             except Exception as e:
                 logger.exception(e)
@@ -60,10 +79,21 @@ class Twitch(commands.Cog):
         else:
             await ctx.send("Provide a streamer name whose streams you want to be notified")
 
-    @commands.command(brief='Get list of subscribed streamers whose streams will be notified', aliases=['ts'])
-    async def twitchsubscription(self, ctx):
+    @commands.command(brief='Get list of streamers whose streams will be notified', aliases=['ts'])
+    async def twitchsubs(self, ctx):
+        async with ctx.typing():
+            await self._twitchsubs(ctx)
+
+    @cog_ext.cog_slash(name="twitchsubs",
+                       description='Get list of streamers whose streams will be notified',
+                       #guild_ids=[207481917975560192, 572648167573684234],
+                       )
+    async def twitchsubss(self, ctx):
+        await self._twitchsubs(ctx)
+
+    async def _twitchsubs(self, ctx):
         if self.streamers:
-            await ctx.send("```Notifying streams from \n{}```".format('\n'.join([str(elem) for elem in self.streamers])))
+            await ctx.send("```Notifying streams from \n=======================\n{}```".format('\n'.join([str(elem) for elem in self.streamers])))
         else:
             await ctx.send("```No streamers to notify. Add streamers using .twitchnotify```")
 

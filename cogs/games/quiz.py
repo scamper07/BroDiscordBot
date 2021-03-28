@@ -5,7 +5,10 @@ import html
 import datetime
 import random
 from discord.ext import commands
+from discord_slash.utils import manage_commands
+
 from base_logger import logger
+from discord_slash import cog_ext, SlashContext, SlashCommand
 
 
 class Quiz(commands.Cog):
@@ -49,6 +52,23 @@ class Quiz(commands.Cog):
 
     @commands.command(brief='Starts a game of quiz')
     async def quiz(self, ctx, arg=None):
+        await self._quiz(ctx, arg)
+
+    @cog_ext.cog_slash(name="quiz",
+                       description='Starts a game of quiz',
+                       #guild_ids=[207481917975560192, 572648167573684234],
+                       options=[manage_commands.create_option(
+                           name="arg",
+                           description="Supported: \"easy\", \"medium\", \"hard\" for modes, \"number\" for no of questions",
+                           option_type=3,
+                           required=False
+                       ),
+                       ],
+                       )
+    async def quizs(self, ctx: SlashContext, arg=None):
+        await self._quiz(ctx, arg)
+
+    async def _quiz(self, ctx, arg=None):
         if not arg or arg == "noinstructions":
             self.QUIZ_MODE = True
             if arg != "noinstructions":
@@ -63,8 +83,8 @@ class Quiz(commands.Cog):
                                                                                      self.QUIZ_QUESTION_WAIT_TIME)
                 )
                 await asyncio.sleep(2)
-                await ctx.send('```Game begins in 20 seconds...```')
-                await asyncio.sleep(20)
+                await ctx.send('```Game begins in 25 seconds...```')
+                await asyncio.sleep(25)
 
             question_number = 1
             participant_score = {}  # dictionary which stores participant name and score

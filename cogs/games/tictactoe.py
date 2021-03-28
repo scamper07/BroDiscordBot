@@ -1,6 +1,10 @@
 import asyncio
 import aiohttp
 from discord.ext import commands
+from discord_slash import cog_ext
+from discord_slash.utils import manage_commands
+from discord_slash.utils.manage_commands import create_choice
+
 from base_logger import logger
 
 url = "http://localhost:8080/api/v1/board"
@@ -90,8 +94,39 @@ class Tictactoe(commands.Cog):
         self.bot_thinking = False
 
     @commands.command(brief='Play a tic tac toe game with GrandMaster Bro', aliases=['ttt'])
-    async def tictactoe(self, ctx, arg="impossible"):
+    async def tictactoe(self, ctx, difficulty="impossible"):
+        async with ctx.typing():
+            await self._tictactoe(ctx, difficulty)
 
+    @cog_ext.cog_slash(name="tictactoe",
+                       description='Play a tic tac toe game with GrandMaster Bro',
+                       #guild_ids=[207481917975560192, 572648167573684234],
+                       options=[manage_commands.create_option(
+                           name="difficulty",
+                           description="Supported: \"easy\", \"medium\", \"impossible\"",
+                           option_type=3,
+                           required=False,
+                           choices=[
+                               create_choice(
+                                   name="Easy",
+                                   value="easy"
+                               ),
+                               create_choice(
+                                   name="Medium",
+                                   value="medium"
+                               ),
+                               create_choice(
+                                   name="Impossible",
+                                   value="impossible"
+                               )
+                           ]
+                       ),
+                       ],
+                       )
+    async def tictactoes(self, ctx, difficulty="impossible"):
+        await self._tictactoe(ctx, difficulty)
+
+    async def _tictactoe(self, ctx, difficulty="impossible"):
         if ctx.guild.id in games:
             await ctx.send("Game already in progress")
         else:
@@ -101,17 +136,17 @@ class Tictactoe(commands.Cog):
                                              ],
                                       computer="O",
                                       player="X",
-                                      difficulty=arg)
+                                      difficulty=difficulty)
 
             logger.debug("Starting TTT...")
             logger.debug(games)
-            async with ctx.typing():
-                await ctx.send(
-                    "Starting game. Player plays 'X'. Enter input as x,y coordinate (valid range 0,0 to 2,2)\nExample: 1,2")
-                logger.debug("Starting game")
-                await ctx.send(games[ctx.guild.id].beautify_board())
-                self.game_mode = True
-                logger.debug("Done")
+
+            await ctx.send(
+                "Starting game. Player plays 'X'. Enter input as x,y coordinate (valid range 0,0 to 2,2)\nExample: 1,2")
+            logger.debug("Starting game")
+            await ctx.send(games[ctx.guild.id].beautify_board())
+            self.game_mode = True
+            logger.debug("Done")
 
     @commands.Cog.listener()
     async def on_message(self, message):
