@@ -7,7 +7,10 @@ import os
 import asyncio
 import random
 import discord
+from discord import Webhook, AsyncWebhookAdapter
+
 from base_logger import logger
+from config import BRO_NEWS_WEBHOOK_URL
 
 
 async def get_advice(message_channel):
@@ -188,7 +191,7 @@ async def get_news(message_channel):
         embed_list = []
         embed = ""
         news_message = ""
-        for index in range(10):
+        for index in range(7):
             embed = discord.Embed(title=json_response['articles'][index]['title'],
                                   description=json_response['articles'][index]['description'],
                                   url=json_response['articles'][index]['url'],
@@ -198,8 +201,14 @@ async def get_news(message_channel):
             news_message += "{}. {}\n".format(index + 1, json_response['articles'][index]['title'])
 
         # await wait_message.edit(content="```TOP HEADLINES:\n```".format(news_message))
-        if isinstance(message_channel, discord.ext.commands.context.Context):
-            await message_channel.send(content="```TOP HEADLINES:\n{}```".format(news_message))
+        if isinstance(message_channel, discord.ext.commands.context.Context) or isinstance(message_channel, discord.channel.TextChannel):
+            # await message_channel.send(content="```TOP HEADLINES:\n{}```".format(news_message))
+            async with aiohttp.ClientSession() as session:
+                webhook = Webhook.from_url(
+                    BRO_NEWS_WEBHOOK_URL,
+                    adapter=AsyncWebhookAdapter(session))
+
+                await webhook.send(content="```TOP HEADLINES```", embeds=embed_list)
         elif isinstance(message_channel, discord_slash.context.SlashContext):
             await message_channel.send(content="```TOP HEADLINES```", embeds=embed_list)
         else:
