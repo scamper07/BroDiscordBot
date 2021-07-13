@@ -86,7 +86,7 @@ class Hangman(commands.Cog):
         # Create a hangman instance
         # print on channel
         if self.hangman.game_in_progress:
-            ctx.channel.send("I am already playing a game")
+            await ctx.channel.send("I am already playing a game")
             return
         self.hangman.game_in_progress = True
         self.channel_id = ctx.channel
