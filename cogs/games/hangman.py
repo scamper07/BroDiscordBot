@@ -64,7 +64,6 @@ class HM:
         else:
             result_string = "Guessed so far : "
             guesses = self.guessed_letters
-            print(guesses)
             for i in range(len(guesses)):
                 result_string += guesses[i].upper() + " , "
 
@@ -87,7 +86,7 @@ class Hangman(commands.Cog):
         # Create a hangman instance
         # print on channel
         if self.hangman.game_in_progress:
-            self.channel.send("I am already playing a game")
+            ctx.channel.send("I am already playing a game")
             return
         self.hangman.game_in_progress = True
         self.channel_id = ctx.channel
@@ -124,7 +123,6 @@ class Hangman(commands.Cog):
         if self.hangman.is_game_over:
             self.hangman.game_in_progress = False
             self.hangman = HM()
-        print("message")
 
 
 def setup(bot):
