@@ -1,5 +1,4 @@
 .idea
 /venv/
-/keys/
 /logs/
 __pycache__/

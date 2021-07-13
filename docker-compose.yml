@@ -1,0 +1,44 @@
+version: '3.5'
+
+services:
+  bro:
+    container_name: bot
+    build: .
+    command: python bot.py
+    volumes:
+      - ./bro:/app
+    ports:
+      - "8000:8000"
+    environment:
+      RUNNING_DOCKER_COMPOSE: 1
+      DISCORD_BOT_TOKEN: /var/run/secrets/discord_bot_token
+      ADMIN_ID: /var/run/secrets/admin_id
+      MASTER_MAC: /var/run/secrets/master_mac
+      MASTER_IP: /var/run/secrets/master_ip
+      TWITCH_CLIENT_ID: /var/run/secrets/twitch_client_id
+      TWITCH_APP_ACCESS: /var/run/secrets/twitch_app_access
+      NEWS_API: /var/run/secrets/news_api
+    secrets:
+      - discord_bot_token
+      - admin_id
+      - master_mac
+      - master_ip
+      - twitch_client_id
+      - twitch_app_access
+      - news_api
+
+secrets:
+  discord_bot_token:
+    file: ./secrets/discord_bot_token
+  admin_id:
+    file: ./secrets/admin_id
+  master_mac:
+    file: ./secrets/master_mac
+  master_ip:
+    file: ./secrets/master_ip
+  twitch_client_id:
+    file: ./secrets/twitch_client_id
+  twitch_app_access:
+    file: ./secrets/twitch_app_access
+  news_api:
+    file: ./secrets/news_api

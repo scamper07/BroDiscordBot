@@ -178,9 +178,13 @@ async def get_news(message_channel):
     try:
         session = aiohttp.ClientSession()
 
-        # read Bot Token from token file in keys folder
-        with open('keys/news_api') as f:
-            news_api_key = f.read()
+        # read Bot Token from token file in secrets folder
+        if os.environ.get('RUNNING_DOCKER_COMPOSE'):
+            key_file_path = os.environ.get("NEWS_API")
+            with open(key_file_path, 'r') as key_file:
+                news_api_key = key_file.read().strip()
+        else:
+            news_api_key = os.environ.get("NEWS_API")
 
         news_url = "https://newsapi.org/v2/top-headlines?sources=bbc-news&language=en&apiKey={}".format(news_api_key)
         async with session.get(news_url) as resp:
