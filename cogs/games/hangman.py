@@ -86,9 +86,10 @@ class HM:
 class Hangman(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # maintain 2 dictionaries server to HM object and challenger to server_id.
+        # maintain dictionaries 1. server to HM object and 2. challenger to server_id. 3. server_id to challenger
         self.game_instances = {}
         self.challenger_to_server_dict = {}
+        self.server_id_to_challenger = {}
 
     @commands.command(brief="Hangman game")
     async def hangman(self, ctx):
@@ -103,6 +104,7 @@ class Hangman(commands.Cog):
             self.game_instances[server_id] = HM(server_id, channel_id, challenger)
         user = self.bot.get_user(challenger)
         self.challenger_to_server_dict[challenger] = server_id
+        self.server_id_to_challenger[server_id] = challenger
         # DM user
         await user.send(constants.STR_GET_WORD)
 
@@ -127,6 +129,23 @@ class Hangman(commands.Cog):
         hm_instance.process_input("")
         # Send blanks and start the game
         await hm_instance.channel_id.send(hm_instance.get_game_status())
+
+    @commands.command()
+    async def abort(self, ctx):
+        # Consider only messages from a server so the game associated with the server can be stopped
+        if not ctx.guild:
+            return
+        # Get server that is requesting the game to be stopped
+        server_id = ctx.guild.id
+        if server_id in self.game_instances:
+            # clear dictionaries
+            del self.game_instances[server_id]
+            challenger = self.server_id_to_challenger[server_id]
+            del self.challenger_to_server_dict[challenger]
+            del self.server_id_to_challenger[server_id]
+            await ctx.send(constants.STR_ABORT_SUCCESS)
+        else:
+            await ctx.send(constants.STR_NO_GAME)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -157,6 +176,7 @@ class Hangman(commands.Cog):
         if hm_instance.is_game_over:
             # Clean up dictionary, erase game instance and remove challenger
             del self.challenger_to_server_dict[hm_instance.challenger]
+            del self.server_id_to_challenger[server_id]
             del self.game_instances[server_id]
 
 
