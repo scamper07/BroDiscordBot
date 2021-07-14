@@ -32,8 +32,8 @@ class HM:
             # If letter is not in the word count it as a wrong answer and update the hangman
             self.wrong_answers += 1
             self.update_hangman_status(self.wrong_answers)
-        if letter not in self.guessed_letters and letter != "":
-            self.guessed_letters.append(letter)
+        if letter.upper() not in self.guessed_letters and letter != "":
+            self.guessed_letters.append(letter.upper())
 
     def update_blanks(self, letter):
         if letter == "":
@@ -121,7 +121,7 @@ class Hangman(commands.Cog):
             # Word was empty ? Retry
             await ctx.channel.send(constants.STR_WORD_EMPTY)
             return
-        # The below variable sets a flag which starts accepting letters in the onMessage
+        # The below variable sets a flag which starts accepting letters in the onMessage fn.
         hm_instance.accepting_letters = True
         hm_instance.truth = word.upper()
         hm_instance.process_input("")
