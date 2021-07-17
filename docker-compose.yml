@@ -26,6 +26,7 @@ services:
       - twitch_client_id
       - twitch_app_access
       - news_api
+    restart: always
 
 secrets:
   discord_bot_token:
