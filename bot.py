@@ -19,7 +19,8 @@ BOT_STARTUP_COGS_LIST = ['cogs.events',
                          #'cogs.general.music',
                          'cogs.background.status_changer',
                          'cogs.background.sleep_remainder',
-                         'cogs.games.tictactoe'
+                         'cogs.games.tictactoe',
+                         'cogs.games.hangman'
                          ]
 
 intents = discord.Intents.all()
