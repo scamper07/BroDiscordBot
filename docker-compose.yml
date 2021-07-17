@@ -6,9 +6,9 @@ services:
     build: .
     command: python bot.py
     volumes:
-      - ./bro:/app
+      - ./secrets:/app/secrets
     ports:
-      - "8000:8000"
+      - "4200:4200"
     environment:
       RUNNING_DOCKER_COMPOSE: 1
       DISCORD_BOT_TOKEN: /var/run/secrets/discord_bot_token
