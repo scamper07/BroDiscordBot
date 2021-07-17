@@ -42,14 +42,19 @@ class Twitch(commands.Cog):
 
     async def _twitchnotify(self, ctx, username=None):
         if username:
-            client_id_path = os.path.join(ROOT_DIR, "keys/twitch_client_id")
-            app_access_path = os.path.join(ROOT_DIR, "keys/twitch_app_access")
+            if os.environ.get('RUNNING_DOCKER_COMPOSE'):
+                key_file_path = os.environ.get("TWITCH_CLIENT_ID")
+                with open(key_file_path, 'r') as key_file:
+                    client_id = key_file.read().strip()
+            else:
+                client_id = os.environ.get("TWITCH_CLIENT_ID")
 
-            with open(client_id_path) as f:
-                client_id = f.read().strip()
-
-            with open(app_access_path) as f:
-                app_access_token = f.read().strip()
+            if os.environ.get('RUNNING_DOCKER_COMPOSE'):
+                key_file_path = os.environ.get("TWITCH_APP_ACCESS")
+                with open(key_file_path, 'r') as key_file:
+                    app_access_token = key_file.read().strip()
+            else:
+                app_access_token = os.environ.get("TWITCH_APP_ACCESS")
 
             headers = {'Client-ID': client_id,
                        'Authorization': 'Bearer ' + app_access_token,
@@ -101,14 +106,19 @@ class Twitch(commands.Cog):
     async def twitch_notifier(self):
         await self.bot.wait_until_ready()
 
-        client_id_path = os.path.join(ROOT_DIR, "keys/twitch_client_id")
-        app_access_path = os.path.join(ROOT_DIR, "keys/twitch_app_access")
+        if os.environ.get('RUNNING_DOCKER_COMPOSE'):
+            key_file_path = os.environ.get("TWITCH_CLIENT_ID")
+            with open(key_file_path, 'r') as key_file:
+                client_id = key_file.read().strip()
+        else:
+            client_id = os.environ.get("TWITCH_CLIENT_ID")
 
-        with open(client_id_path) as f:
-            client_id = f.read().strip()
-
-        with open(app_access_path) as f:
-            app_access_token = f.read().strip()
+        if os.environ.get('RUNNING_DOCKER_COMPOSE'):
+            key_file_path = os.environ.get("TWITCH_APP_ACCESS")
+            with open(key_file_path, 'r') as key_file:
+                app_access_token = key_file.read().strip()
+        else:
+            app_access_token = os.environ.get("TWITCH_APP_ACCESS")
 
         url = "https://api.twitch.tv/helix/streams?user_login="  # Twitch get streams api
         games_url = "https://api.twitch.tv/helix/games?id="  # Twitch get game api

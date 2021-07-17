@@ -74,9 +74,13 @@ class Admin(commands.Cog):
                     '''
 
                     ''' direct call '''
-                    master_mac_path = os.path.join(ROOT_DIR, "keys/master_mac")
-                    with open(master_mac_path) as f:
-                        master_mac = f.read().strip()
+
+                    if os.environ.get('RUNNING_DOCKER_COMPOSE'):
+                        key_file_path = os.environ.get("MASTER_MAC")
+                        with open(key_file_path, 'r') as key_file:
+                            master_mac = key_file.read().strip()
+                    else:
+                        master_mac = os.environ.get("MASTER_MAC")
                     logger.debug("Powering on PC")
                     os.system("wakeonlan {}".format(master_mac))
                     await ctx.send("```Powering on PC```")
@@ -84,13 +88,20 @@ class Admin(commands.Cog):
                     await ctx.send("```Only my master can use this command```")
 
             elif arg.lower() == "off":
-                admin_id_path = os.path.join(ROOT_DIR, "keys/admin_id")
-                with open(admin_id_path) as f:
-                    admin_id = f.read().strip()
+                if os.environ.get('RUNNING_DOCKER_COMPOSE'):
+                    key_file_path = os.environ.get("ADMIN_ID")
+                    with open(key_file_path, 'r') as key_file:
+                        admin_id = key_file.read().strip()
+                else:
+                    admin_id = os.environ.get("ADMIN_ID")
+
                 if ctx.author.id == int(admin_id):
-                    master_ip_path = os.path.join(ROOT_DIR, "keys/master_ip")
-                    with open(master_ip_path) as f:
-                        master_ip = f.read().strip()
+                    if os.environ.get('RUNNING_DOCKER_COMPOSE'):
+                        key_file_path = os.environ.get("MASTER_IP")
+                        with open(key_file_path, 'r') as key_file:
+                            master_ip = key_file.read().strip()
+                    else:
+                        master_ip = os.environ.get("MASTER_IP")
                     logger.debug("Shutting down PC")
                     os.system("ssh preetham@{} shutdown /s".format(master_ip))
                     await ctx.send('```Shutting down PC```')
