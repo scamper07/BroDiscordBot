@@ -1,6 +1,8 @@
 import uinput
 import discord
+import asyncio
 from base_logger import logger
+
 
 class VirtualKeyboard:
     def __init__(self):
