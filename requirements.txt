@@ -4,3 +4,4 @@ aiohttp==3.7.4
 discord==1.0.1
 youtube_dl==2021.1.16
 nltk
+discord-py-slash-command==2.3.2
