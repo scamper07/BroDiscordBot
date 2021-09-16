@@ -6,6 +6,7 @@ import os
 import asyncio
 import random
 import discord
+import uinput
 from base_logger import logger
 
 
