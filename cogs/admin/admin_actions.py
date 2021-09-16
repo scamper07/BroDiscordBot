@@ -1,27 +1,29 @@
 import discord
 import os
 import subprocess
-
 from discord_slash.utils.manage_commands import create_choice
-
 from base_logger import logger
 from discord.ext import commands
 from config import TEST2_CHANNEL_ID, GENERAL_CHANNEL_ID, ROOT_DIR, COMMAND_PREFIX, ADMIN_ID, TEST_CHANNEL_ID
 from utils import get_public_url, embed_send
 from discord_slash import cog_ext, SlashContext, manage_commands
+from constants import DESCRIPTION_PC_CONTROL
 
 
 class Admin(commands.Cog):
+    """
+    A cog for admin commands
+    """
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(brief='Turns on/off my Master\'s PC')
+    @commands.command(brief=DESCRIPTION_PC_CONTROL)
+    @commands.is_owner()
     async def power(self, ctx, arg=None):
         await self._power(ctx, arg)
 
     @cog_ext.cog_slash(name="power",
-                       description='Turns on/off my Master\'s PC',
-                       #guild_ids=[207481917975560192, 572648167573684234],
+                       description=DESCRIPTION_PC_CONTROL,
                        options=[manage_commands.create_option(
                             name="arg",
                             description="\"on\" to switch on, \"off\" to switch off",
@@ -116,9 +118,9 @@ class Admin(commands.Cog):
                                                                               COMMAND_PREFIX))
         except Exception as e:
             logger.exception(e)
-            await ctx.send('```Zzzzz```')
+            await send_error_message(ctx)
 
-    @commands.command(brief='', hidden=True)
+    @commands.command(hidden=True)
     async def post(self, ctx, *args):
         if args[0] == 'gb':
             channel = self.bot.get_channel(TEST2_CHANNEL_ID)
@@ -138,67 +140,62 @@ class Admin(commands.Cog):
 
     @cog_ext.cog_slash(name="sysinfo",
                        description='Shows my host hardware-software info',
-                       #guild_ids=[207481917975560192, 572648167573684234],
                        )
     async def sysinfos(self, ctx: SlashContext):
         await self._sysinfo(ctx)
 
     async def _sysinfo(self, ctx):
         try:
-            if ctx.author.id == int(ADMIN_ID):
-                # wait_message = await ctx.send("Processing... Please wait. This might take sometime")
-                # async with ctx.typing():
-                embed = discord.Embed(
-                    title="System Info",
-                    description="Showing my host hardware/software information",
-                    colour=discord.Color.gold()
-                )
-                embed.set_footer(text="Hope that was helpful, bye!")
-                embed.set_author(name="Bro Bot", icon_url=self.bot.user.avatar_url)
-                embed.set_thumbnail(url=ctx.guild.icon_url)
-                result = subprocess.Popen(['neofetch', '--stdout'], stdout=subprocess.PIPE)
-                for line in result.stdout:
-                    line = line.decode('utf-8').strip('\n').split(':')
+            embed = discord.Embed(
+                title="System Info",
+                description="Showing my host hardware/software information",
+                colour=discord.Color.gold()
+            )
+            embed.set_footer(text="Hope that was helpful, bye!")
+            embed.set_author(name="Bro Bot", icon_url=self.bot.user.avatar_url)
+            embed.set_thumbnail(url=ctx.guild.icon_url)
+            result = subprocess.Popen(['neofetch', '--stdout'], stdout=subprocess.PIPE)
+            for line in result.stdout:
+                line = line.decode('utf-8').strip('\n').split(':')
+                if len(line) == 2:
+                    if line[0] == "OS" or line[0] == "Host":
+                        embed.add_field(name=line[0], value=line[1], inline=False)
+                    else:
+                        embed.add_field(name=line[0], value=line[1], inline=True)
+
+            # Raspberry Pi Only!!!
+            if os.uname()[1] == "anton":
+                temp = subprocess.Popen(['/opt/vc/bin/vcgencmd', 'measure_temp'], stdout=subprocess.PIPE)
+                for line in temp.stdout:
+                    line = line.decode('utf-8').strip('\n').split('=')
                     if len(line) == 2:
-                        if line[0] == "OS" or line[0] == "Host":
-                            embed.add_field(name=line[0], value=line[1], inline=False)
-                        else:
-                            embed.add_field(name=line[0], value=line[1], inline=True)
+                        embed.add_field(name="CPU Temp", value=line[1], inline=True)
 
-                # Raspberry Pi Only!!!
-                if os.uname()[1] == "raspberrypi":
-                    temp = subprocess.Popen(['/opt/vc/bin/vcgencmd', 'measure_temp'], stdout=subprocess.PIPE)
-                    for line in temp.stdout:
-                        line = line.decode('utf-8').strip('\n').split('=')
-                        if len(line) == 2:
-                            embed.add_field(name="CPU Temp", value=line[1], inline=True)
+                url = await get_public_url()
+                embed.add_field(name="Public URL", value=url, inline=False)
 
-                    url = await get_public_url()
-                    embed.add_field(name="Public URL", value=url, inline=False)
-
-                    # await wait_message.edit(content='', embed=embed)
-                    await embed_send(ctx, embed)
-            else:
-                await ctx.send('```Only my master can use this command.```')
+                # await wait_message.edit(content='', embed=embed)
+                await embed_send(ctx, embed)
         except Exception as e:
             logger.exception(e)
+            await send_error_message(ctx)
 
-    @commands.command(brief='', hidden=True)
+    @commands.command(hidden=True)
+    @commands.is_owner()
     async def runcmd(self, ctx, *args):
         logger.debug(args)
-        if ctx.message.author.id == int(ADMIN_ID):
-            try:
-                result = subprocess.Popen(args, stdout=subprocess.PIPE)
-                logger.debug(result.stdout)
-                out = ""
-                for line in result.stdout:
-                    out += line.decode('utf-8')
-                logger.debug(out)
-                await ctx.send("```{}```".format(out))
-            except Exception as e:
-                logger.exception(e)
-        else:
-            await ctx.send('```Only my master can use this command.```')
+        try:
+            result = subprocess.Popen(args, stdout=subprocess.PIPE)
+            logger.debug(result.stdout)
+            out = ""
+            for line in result.stdout:
+                out += line.decode('utf-8')
+            logger.debug(out)
+            embed = discord.Embed(title=out)
+            await embed_send(ctx, embed)
+        except Exception as e:
+            logger.exception(e)
+            await send_error_message(ctx)
 
 
 def setup(bot):

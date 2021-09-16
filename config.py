@@ -55,11 +55,10 @@ GAMEBOY_START = 'c'
 GAMEBOY_SELECT = 'v'
 GAMEBOY_HOTKEY = 'M'
 
-DEBUG_FLAG_FILE = "/home/pi/debug"
-
-DAILY_ADVICE_TIME = "6:45"  # am
+# Time constants
+DAILY_ADVICE_TIME = "7:30"  # am
 DAILY_NEWS_TIME = "9:00"  # am
-DAILY_SLEEP_TIME = "0:00"
+DAILY_SLEEP_TIME = "0:15"
 
 if os.environ.get('RUNNING_DOCKER_COMPOSE'):
     key_file_path = os.environ.get("ADMIN_ID")

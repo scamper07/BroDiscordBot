@@ -1,11 +1,13 @@
 import asyncio
 import aiohttp
+import discord
 from discord.ext import commands
 from discord_slash import cog_ext
 from discord_slash.utils import manage_commands
 from discord_slash.utils.manage_commands import create_choice
-
 from base_logger import logger
+from utils import embed_send
+
 
 url = "http://localhost:8080/api/v1/board"
 DOT = ":white_medium_small_square:"
@@ -128,7 +130,9 @@ class Tictactoe(commands.Cog):
 
     async def _tictactoe(self, ctx, difficulty="impossible"):
         if ctx.guild.id in games:
-            await ctx.send("Game already in progress")
+            #await ctx.send("Game already in progress")
+            embed = discord.Embed(title="Game already in progress")
+            await embed_send(ctx, embed)
         else:
             games[ctx.guild.id] = TTT(board=[[".", ".", "."],
                                              [".", ".", "."],
@@ -141,8 +145,11 @@ class Tictactoe(commands.Cog):
             logger.debug("Starting TTT...")
             logger.debug(games)
 
-            await ctx.send(
-                "Starting game. Player plays 'X'. Enter input as x,y coordinate (valid range 0,0 to 2,2)\nExample: 1,2")
+            #await ctx.send(
+            #    "Starting game. Player plays 'X'. Enter input as x,y coordinate (valid range 0,0 to 2,2)\nExample: 1,2")
+            embed = discord.Embed(title="Starting game.\nPlayer plays 'X'.\nEnter input as x,y coordinate (valid range 0,0 to 2,2)\nExample: 1,2")
+            await embed_send(ctx, embed)
+
             logger.debug("Starting game")
             await ctx.send(games[ctx.guild.id].beautify_board())
             self.game_mode = True
@@ -167,7 +174,9 @@ class Tictactoe(commands.Cog):
                 return
 
             if self.bot_thinking:
-                await message.channel.send("Slow down Bro. Try again...")
+                #await message.channel.send("Slow down Bro. Try again...")
+                embed = discord.Embed(title="Slow down Bro. Try again...")
+                await embed_send(message.channel, embed)
                 return
 
             game = games[message.guild.id]
@@ -178,13 +187,17 @@ class Tictactoe(commands.Cog):
                 game.board[int(user_input[0])][int(user_input[1])] = game.player
                 await message.channel.send(game.beautify_board())
                 if game.hasWon(game.board):
-                    await message.channel.send("Congratulations! Player has won :trophy: :first_place:")
+                    #await message.channel.send("Congratulations! Player has won :trophy: :first_place:")
+                    embed = discord.Embed(title="Congratulations! Player has won :trophy: :first_place:")
+                    await embed_send(message.channel, embed)
                     del games[message.guild.id]     # delete game instance
                     self.bot_thinking = False
                     logger.debug(games)
                     return
                 elif game.hasWon(game.board) is None:
-                    await message.channel.send("Match drawn :handshake:")
+                    #await message.channel.send("Match drawn :handshake:")
+                    embed = discord.Embed(title="Match drawn :handshake:")
+                    await embed_send(message.channel, embed)
                     del games[message.guild.id]     # delete game instance
                     self.bot_thinking = False
                     logger.debug(games)
@@ -208,15 +221,22 @@ class Tictactoe(commands.Cog):
                             await message.channel.send(game.beautify_board())
                             self.bot_thinking = False
                             if game.hasWon(game.board):
-                                await message.channel.send("GrandMaster Bro wins! :robot:")
+                                #await message.channel.send("GrandMaster Bro wins! :robot:")
+                                embed = discord.Embed(title="GrandMaster Bro wins! :robot:")
+                                await embed_send(message.channel, embed)
+
                                 del games[message.guild.id]      # delete game instance
                                 logger.debug(games)
                             elif game.hasWon(game.board) is None:
-                                await message.channel.send("Match drawn :handshake:")
+                                #await message.channel.send("Match drawn :handshake:")
+                                embed = discord.Embed(title="Match drawn :handshake:")
+                                await embed_send(message.channel, embed)
                                 del games[message.guild.id]      # delete game instance
                                 logger.debug(games)
             else:
-                await message.channel.send("Position already filled. Try some other coordinate...")
+                #await message.channel.send("Position already filled. Try some other coordinate...")
+                embed = discord.Embed(title="Position already filled. Try some other coordinate...")
+                await embed_send(message.channel, embed)
 
         except ValueError as vale:
             logger.exception(vale)

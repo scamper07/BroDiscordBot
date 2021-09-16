@@ -1,22 +1,23 @@
 import discord
+import os
 from discord.ext import commands
 from base_logger import logger
 from config import COMMAND_PREFIX
 from discord_slash import SlashCommand
-import os
+
 
 # List of cogs to load on bot startup
 BOT_STARTUP_COGS_LIST = ['cogs.events',
                          'cogs.general.general',
-                         'cogs.general.statistics',
-                         'cogs.games.quiz',
+                         #'cogs.general.statistics',
+                         #'cogs.games.quiz',
                          'cogs.background.daily_advice',
-                         'cogs.background.twitch_stream_notifier',
+                         #'cogs.background.twitch_stream_notifier',
                          'cogs.admin.admin_actions',
                          #'cogs.games.gameboy',
-                         'cogs.background.daily_news',
-                         'cogs.background.f1_calendar',
-                         #'cogs.general.music',
+                         'cogs.background.daily_news',  #
+                         'cogs.background.f1_calendar',  #
+                         'cogs.general.music',
                          'cogs.background.status_changer',
                          'cogs.background.sleep_remainder',
                          'cogs.games.tictactoe',

@@ -1,10 +1,9 @@
 import os
 import aiohttp
 import discord
-
 from discord.ext import tasks, commands
 from base_logger import logger
-from config import ALPHA_MALES_GOODIE_BAG_CHANNEL, DEBUG_FLAG_FILE, GENERAL_CHANNEL_ID, TEST_CHANNEL_ID, DAILY_NEWS_TIME
+from config import ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID, TEST_CHANNEL_ID, DAILY_NEWS_TIME
 from utils import get_news, sleep_until_time
 from datetime import date
 from discord import Webhook, AsyncWebhookAdapter
@@ -22,10 +21,6 @@ class DailyNews(commands.Cog):
 
     @tasks.loop(hours=24.0)
     async def daily_news(self):
-        # Create DEBUG_FLAG_FILE file to avoid spamming group while testing/disable this cog
-        if os.path.exists(DEBUG_FLAG_FILE):
-            return
-
         for channel in self.channel_list:
             message_channel = self.bot.get_channel(channel)
             await message_channel.send("**Today's news **".format(date.today().strftime("%d/%m/%Y")))
