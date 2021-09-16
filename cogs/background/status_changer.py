@@ -6,9 +6,13 @@ from itertools import cycle
 
 
 class StatusChanger(commands.Cog):
+    """
+    A cog for cycling through statuses of bot
+    """
     def __init__(self, bot):
         self.bot = bot
-        self.status = cycle([discord.Activity(name='Game Of The Year', url="https://www.youtube.com/watch?v=oHg5SJYRHA0", type=discord.ActivityType.streaming),
+        self.status = cycle([discord.Activity(name=f'{COMMAND_PREFIX}help', type=discord.ActivityType.listening),
+                             discord.Activity(name='Game Of The Year', url="https://www.youtube.com/watch?v=oHg5SJYRHA0", type=discord.ActivityType.streaming),
                              discord.Activity(name='Spotify', type=discord.ActivityType.listening),
                              discord.Activity(name=f'{COMMAND_PREFIX}help', type=discord.ActivityType.listening),
                              discord.Activity(name='with fire', type=discord.ActivityType.playing),
@@ -22,12 +26,14 @@ class StatusChanger(commands.Cog):
                                               type=discord.ActivityType.streaming),
                              discord.Activity(name='Apex Legends', type=discord.ActivityType.playing),
                              discord.Activity(name='out for you!', type=discord.ActivityType.watching),
+                             discord.Activity(name=f'{COMMAND_PREFIX}help', type=discord.ActivityType.listening),
                              discord.Activity(name=f'Call of Duty\N{REGISTERED SIGN}: Modern Warfare\N{REGISTERED SIGN}', type=discord.ActivityType.playing),
                              discord.Activity(name='Catan', url="https://www.youtube.com/watch?v=yBLdQ1a4-JI",
                                               type=discord.ActivityType.streaming),
                              discord.Activity(name=f'{COMMAND_PREFIX}help', type=discord.ActivityType.listening),
                              discord.Activity(name='VALORANT', url="https://www.youtube.com/watch?v=b1cTSxu8O8c",
                                               type=discord.ActivityType.streaming),
+                             discord.Activity(name=f'{COMMAND_PREFIX}help', type=discord.ActivityType.listening),
                              ])
         self.change_status.start()
 

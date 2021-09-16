@@ -1,13 +1,16 @@
 import os
 from discord.ext import tasks, commands
 from base_logger import logger
-from config import ALPHA_MALES_GOODIE_BAG_CHANNEL, DEBUG_FLAG_FILE, GENERAL_CHANNEL_ID, TEST_CHANNEL_ID, \
+from config import ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID, TEST_CHANNEL_ID, \
     DAILY_ADVICE_TIME
 from utils import get_advice, sleep_until_time
 from datetime import date
 
 
 class DailyAdvice(commands.Cog):
+    """
+    A cog for daily advice
+    """
     def __init__(self, bot):
         self.bot = bot
         self.channel_list = [ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID]
@@ -19,9 +22,7 @@ class DailyAdvice(commands.Cog):
 
     @tasks.loop(hours=24.0)
     async def daily_advices(self):
-        if os.path.exists(DEBUG_FLAG_FILE):
-            return
-
+        """Function to send news everyday at DAILY_ADVICE_TIME"""
         for channel in self.channel_list:
             message_channel = self.bot.get_channel(channel)
             await message_channel.send("**Today's advice for the bros**")
@@ -29,7 +30,7 @@ class DailyAdvice(commands.Cog):
 
     @daily_advices.before_loop
     async def before(self):
-        # Trigger at 7:30 am IST
+        # Trigger at DAILY_ADVICE_TIME
         await sleep_until_time(DAILY_ADVICE_TIME)
         await self.bot.wait_until_ready()
 

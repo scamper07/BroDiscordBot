@@ -18,3 +18,17 @@ EMOJI_POINT_FINGER_UP = ":point_up:"
 EMOJI_COAT = ":coat:"
 EMOJI_JEANS = ":jeans:"
 EMOJI_DIZZY_FACE = ":dizzy_face:"
+
+# bot command descriptions
+DESCRIPTION_INTRO = "Shows brief introduction of Bro Bot!"
+DESCRIPTION_FACT = "Bro shares random facts!"
+DESCRIPTION_XKCD = "Puts out random xkcd comic!"
+DESCRIPTION_ADVICE = "Bro gives life advices!"
+DESCRIPTION_INSULT = "Get insulted by Bro"
+DESCRIPTION_NEWS = "Bro shares BREAKING NEWS!!!"
+DESCRIPTION_PC_CONTROL = "'Turns on/off my Master\'s PC'"
+
+# Gif urls
+ERROR_GIF = "https://media1.giphy.com/media/5xaOcLyjXRo4hX5UhSU/giphy.gif?cid=ecf05e47zc921p2u5fk0ocktytuyu3lak07ot2fnztu79x8c&rid=giphy.gif&ct=g"
+
+
