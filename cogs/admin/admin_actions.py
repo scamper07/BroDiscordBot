@@ -5,7 +5,7 @@ from discord_slash.utils.manage_commands import create_choice
 from base_logger import logger
 from discord.ext import commands
 from config import TEST2_CHANNEL_ID, GENERAL_CHANNEL_ID, ROOT_DIR, COMMAND_PREFIX, ADMIN_ID, TEST_CHANNEL_ID
-from utils import get_public_url, embed_send
+from utils import get_public_url, embed_send, send_error_message
 from discord_slash import cog_ext, SlashContext, manage_commands
 from constants import DESCRIPTION_PC_CONTROL
 
