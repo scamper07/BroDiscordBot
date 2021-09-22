@@ -1,0 +1,13 @@
+[Unit]
+Description=TicTacToe REST API
+After=network.service
+
+[Service]
+type=simple
+User=pi
+WorkingDirectory=/home/pi/TicTacToe-Backend
+ExecStart=/bin/sh /home/pi/misc/start_tictactoe.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

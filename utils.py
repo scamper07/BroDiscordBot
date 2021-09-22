@@ -6,10 +6,12 @@ import os
 import asyncio
 import random
 import discord
+import subprocess
 from discord import Webhook, AsyncWebhookAdapter
 from base_logger import logger
 from config import BRO_NEWS_WEBHOOK_URL
 from constants import ERROR_GIF
+from pathlib import Path
 
 
 async def get_advice(message_channel):
@@ -191,3 +193,41 @@ async def send_error_message(ctx, title='Sorry, try again later'):
                           color=discord.Color.red())
     embed.set_image(url=ERROR_GIF)
     await embed_send(ctx, embed)
+
+
+async def get_terraria_url():
+    """Function used to get a terraria server public url"""
+    session = aiohttp.ClientSession()
+    url = "http://localhost:4040/api/tunnels/"
+    async with session.get(url) as resp:
+        data = await resp.read()
+        data_json = json.loads(data)
+    await session.close()
+
+    msg = ""
+    for i in data_json['tunnels']:
+        if i['name'] == 'terraria':
+            msg = i['public_url']
+    return msg
+
+
+async def backup_world_file(ctx):
+    try:
+        embed = discord.Embed(title="Generating file...Please wait...")
+        await embed_send(ctx, embed)
+        world_file = "/home/pi/tshock/Worlds.zip"
+        ret = subprocess.call(['sh', '/home/pi/misc/world_file_generate.sh'])
+        if ret == 0:
+            my_file = Path(world_file)
+            if my_file.is_file():
+                await ctx.send(file=discord.File(world_file))
+
+            else:
+                embed = discord.Embed(title="Failed, try again later...")
+                await embed_send(ctx, embed)
+                subprocess.call(['sh', '/home/pi/misc/world_file_remove.sh'])
+        else:
+            embed = discord.Embed(title="Zip process failed, try again later...")
+            await embed_send(ctx, embed)
+    except Exception as e:
+        logger.exception(e)

@@ -4,6 +4,11 @@ from discord.ext import commands
 from youtube_dl import YoutubeDL
 from utils import embed_send
 from base_logger import logger
+from asyncio import sleep
+
+# dictionary that holds music sessions across multiple servers. key - server id, value - music queue
+queue = {}
+
 
 class Music(commands.Cog):
     def __init__(self, bot):
@@ -19,6 +24,7 @@ class Music(commands.Cog):
                                'options': '-vn'}
 
         self.vc = ""
+        self.current_song = ""
 
     # searching the item on youtube
     def search_yt(self, item):
@@ -32,19 +38,22 @@ class Music(commands.Cog):
 
         return {'source': info['formats'][0]['url'], 'title': info['title']}
 
-    def play_next(self):
+    def play_next(self, ctx):
         if len(self.music_queue) > 0:
             self.is_playing = True
 
             # get the first url
             m_url = self.music_queue[0][0]['source']
-            # embed = discord.Embed(title="Now Playing",
+            #embed = discord.Embed(title="Now Playing",
             #                      description=self.music_queue[0][0]['title'])
+            #ctx.send(embed=embed)
             # await embed_send(ctx, embed)
             # remove the first element as you are currently playing it
+            self.current_song = self.music_queue[0][0]['title']
             self.music_queue.pop(0)
 
-            self.vc.play(discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next())
+            self.vc.play(discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next(ctx))
+
         else:
             self.is_playing = False
 
@@ -57,19 +66,31 @@ class Music(commands.Cog):
 
             # try to connect to voice channel if you are not already connected
 
-            if self.vc == "" or not self.vc.is_connected() or self.vc == None:
+            if self.vc == "" or not self.vc.is_connected() or self.vc is None:
                 self.vc = await self.music_queue[0][1].connect()
             else:
                 await self.vc.move_to(self.music_queue[0][1])
 
-            print(self.music_queue)
             embed = discord.Embed(title="Now Playing",
                                   description=self.music_queue[0][0]['title'])
             await embed_send(ctx, embed)
             # remove the first element as you are currently playing it
+            self.current_song = self.music_queue[0][0]['title']
             self.music_queue.pop(0)
 
-            self.vc.play(discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next())
+            self.vc.play(discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next(ctx))
+
+            while self.vc.is_playing():
+                await sleep(10)
+
+            if len(self.music_queue) == 0:
+                # wait for 120 seconds and then quit voice channel
+                await sleep(120)
+                if not self.vc.is_playing():
+                    embed = discord.Embed(title="Bye!")
+                    await embed_send(ctx, embed)
+                    await self.vc.disconnect()
+
         else:
             self.is_playing = False
 
@@ -88,11 +109,12 @@ class Music(commands.Cog):
                 embed = discord.Embed(title="Could not play song, try different keyword")
                 await embed_send(ctx, embed)
             else:
-                embed = discord.Embed(title="Song added to the queue")
-                await embed_send(ctx, embed)
+                if self.music_queue:
+                    embed = discord.Embed(title="Song added to the queue")
+                    await embed_send(ctx, embed)
                 self.music_queue.append([song, voice_channel])
 
-                if self.is_playing == False:
+                if not self.is_playing:
                     await self.play_music(ctx)
 
     @commands.command(aliases=['q'], help="Displays the current songs in queue")
@@ -116,6 +138,38 @@ class Music(commands.Cog):
             self.vc.stop()
             # try to play next in the queue if it exists
             await self.play_music(ctx)
+
+    @commands.command(aliases=['np'], help="Displays the current playing song")
+    async def nowplaying(self, ctx):
+        if self.vc.is_playing():
+            embed = discord.Embed(title="Now Playing",
+                                  description=self.current_song)
+            await embed_send(ctx, embed)
+        else:
+            embed = discord.Embed(title="No music is playing")
+            await embed_send(ctx, embed)
+
+    @commands.command(aliases=['pp'], help="Pauses song being played")
+    async def pause(self, ctx):
+        if self.vc.is_playing():
+            self.vc.pause()
+            embed = discord.Embed(title="Paused",
+                                  description=self.current_song)
+            await embed_send(ctx, embed)
+        else:
+            embed = discord.Embed(title="No music is playing")
+            await embed_send(ctx, embed)
+
+    @commands.command(aliases=['r'], help="Resumes paused song")
+    async def resume(self, ctx):
+        if self.vc.is_paused():
+            self.vc.resume()
+            embed = discord.Embed(title="Resumed",
+                                  description=self.current_song)
+            await embed_send(ctx, embed)
+        else:
+            embed = discord.Embed(title="No music is paused")
+            await embed_send(ctx, embed)
 
 
 def setup(bot):

@@ -9,8 +9,8 @@ from discord_slash import SlashCommand
 # List of cogs to load on bot startup
 BOT_STARTUP_COGS_LIST = ['cogs.events',
                          'cogs.general.general',
-                         #'cogs.general.statistics',
-                         #'cogs.games.quiz',
+                         'cogs.general.statistics', #
+                         'cogs.games.quiz', #
                          'cogs.background.daily_advice',
                          #'cogs.background.twitch_stream_notifier',
                          'cogs.admin.admin_actions',
@@ -21,11 +21,12 @@ BOT_STARTUP_COGS_LIST = ['cogs.events',
                          'cogs.background.status_changer',
                          'cogs.background.sleep_remainder',
                          'cogs.games.tictactoe',
-                         'cogs.games.hangman'
+                         'cogs.games.hangman',
+                         'cogs.games.terraria'
                          ]
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='The Bro Bot', intents=intents)
+bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='Hi I\'m Bro Bot - A general purpose bot', intents=intents)
 slash = SlashCommand(bot, sync_commands=True)
 
 if __name__ == '__main__':
