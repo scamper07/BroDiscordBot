@@ -1,0 +1,13 @@
+[Unit]
+Description=Ngrok
+After=network.service
+
+[Service]
+type=simple
+User=pi
+WorkingDirectory=/home/pi
+ExecStart=/usr/local/bin/ngrok start --all --config="/etc/systemd/system/ngrok.yml"
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

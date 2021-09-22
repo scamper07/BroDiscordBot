@@ -1,0 +1,14 @@
+[Unit]
+Description=Bro Discord Bot service
+After=multi-user.target
+
+[Service]
+WorkingDirectory=/home/pi/projects/BroDiscordBot/
+User=pi
+EnvironmentFile=/home/pi/projects/BroDiscordBot/secrets/keys
+ExecStart=/usr/bin/python3 /home/pi/projects/BroDiscordBot/bot.py
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

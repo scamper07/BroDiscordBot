@@ -1,0 +1,10 @@
+authtoken: 
+region: ap
+
+tunnels:
+  brobot:
+    proto: http
+    addr: 4200
+  terraria:
+    proto: tcp
+    addr: 7777
