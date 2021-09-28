@@ -1,6 +1,7 @@
 import os
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_FILE_LOCATION = os.path.join(ROOT_DIR, 'logs/discord.log')
 
 # The prefix added before any command to which Bro bot will respond
 COMMAND_PREFIX = '.'
@@ -12,6 +13,7 @@ TEST_CHANNEL_ID = 207481917975560192
 TEST2_CHANNEL_ID = 573003537609654283
 GAMEBOY_TEST_CHANNEL_ID = 725730342945947701
 F1_DISCUSSION_CHANNEL_ID = 729404385901281341
+TERRARIA_BACKUP_CHANNEL_ID = 888711934705291294
 
 # Twitch globals
 TWITCH_NOT_STREAMING = 0
@@ -59,6 +61,7 @@ GAMEBOY_HOTKEY = 'M'
 DAILY_ADVICE_TIME = "7:30"  # am
 DAILY_NEWS_TIME = "9:00"  # am
 DAILY_SLEEP_TIME = "0:15"
+DAILY_TERRARIA_BACKUP_TIME = "21:20"
 
 if os.environ.get('RUNNING_DOCKER_COMPOSE'):
     key_file_path = os.environ.get("ADMIN_ID")
@@ -72,3 +75,5 @@ ADDITIONAL_STOPWORDS = ["|", "-", "0o", "0s", "3a", "3b", "3d", "6b", "6o", "a",
 BRO_NEWS_TEST_WEBHOOK_URL = 'https://discord.com/api/webhooks/702850091999952986/HbMM6hLD9uo-YrCS6QwrZmrONsIM118Em-6dHXMdIh0va0Qz4q3cQMr2QhM2e_eogxCE'
 
 BRO_NEWS_WEBHOOK_URL = 'https://discord.com/api/webhooks/829418166928539648/uFB1keyjfEkbLAqkHEyJsZi4Lh-4M8ltuFHT4cWf9BScEssONnfjR8TrtKHnDd-ulIBi'
+
+OUTPUT_WORLD_FILE = "/home/pi/tshock/Worlds.zip"
