@@ -1,12 +1,13 @@
 import discord
-from discord.ext import commands
-from utils import embed_send, get_terraria_url, backup_world_file
+from discord.ext import commands, tasks
+from utils import embed_send, get_terraria_url, backup_world_file, sleep_until_time
 from base_logger import logger
 import subprocess
 from pathlib import Path
 from asyncio import sleep
 import asyncio
 from subprocess import Popen
+from config import TERRARIA_BACKUP_CHANNEL_ID, TEST_CHANNEL_ID, DAILY_TERRARIA_BACKUP_TIME
 
 
 class Terraria(commands.Cog):
@@ -15,6 +16,10 @@ class Terraria(commands.Cog):
     """
     def __init__(self, bot):
         self.bot = bot
+        self.daily_world_file_backup.start()
+
+    def cog_unload(self):
+        self.daily_world_file_backup.cancel()
 
     @commands.command(aliases=["start"], brief='Starts terraria server')
     @commands.has_role("Terraria")
@@ -58,6 +63,16 @@ class Terraria(commands.Cog):
     @commands.has_role("Terraria")
     async def getworldfile(self, ctx):
         await backup_world_file(ctx)
+
+    @tasks.loop(hours=24.0)
+    async def daily_world_file_backup(self):
+        message_channel = self.bot.get_channel(TERRARIA_BACKUP_CHANNEL_ID)
+        await backup_world_file(message_channel)
+
+    @daily_world_file_backup.before_loop
+    async def before(self):
+        await sleep_until_time(DAILY_TERRARIA_BACKUP_TIME)
+        await self.bot.wait_until_ready()
 
 
 def setup(bot):

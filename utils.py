@@ -9,7 +9,7 @@ import discord
 import subprocess
 from discord import Webhook, AsyncWebhookAdapter
 from base_logger import logger
-from config import BRO_NEWS_WEBHOOK_URL
+from config import BRO_NEWS_WEBHOOK_URL, OUTPUT_WORLD_FILE
 from constants import ERROR_GIF
 from pathlib import Path
 
@@ -215,13 +215,11 @@ async def backup_world_file(ctx):
     try:
         embed = discord.Embed(title="Generating file...Please wait...")
         await embed_send(ctx, embed)
-        world_file = "/home/pi/tshock/Worlds.zip"
         ret = subprocess.call(['sh', '/home/pi/misc/world_file_generate.sh'])
         if ret == 0:
-            my_file = Path(world_file)
+            my_file = Path(OUTPUT_WORLD_FILE)
             if my_file.is_file():
-                await ctx.send(file=discord.File(world_file))
-
+                await ctx.send(file=discord.File(OUTPUT_WORLD_FILE))
             else:
                 embed = discord.Embed(title="Failed, try again later...")
                 await embed_send(ctx, embed)
