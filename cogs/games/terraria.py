@@ -36,7 +36,7 @@ class Terraria(commands.Cog):
         else:
             subprocess.Popen(["/home/pi/misc/server-start-screen.sh"], stdout=subprocess.PIPE)
             url = await get_terraria_url()
-            embed = discord.Embed(title="Server started, connect after 30 seconds...\nURL: "+url)
+            embed = discord.Embed(title="Server started, connect after 30 seconds...\nURL: "+url[6:])
             await embed_send(ctx, embed)
 
     @commands.command(aliases=["stop"], brief='Stops terraria server')
