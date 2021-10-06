@@ -70,6 +70,23 @@ class Tlto(commands.Cog):
                     embed = discord.Embed(title="Pounce Enabled!")
                     await embed_send(message_channel, embed)
 
+    @commands.command(aliases=["sup"], brief="Signup participants for TLTO Quiz")
+    async def signup(self, ctx, *args):
+        self.players = set(args[1:])
+        embed = discord.Embed(title="Done!")
+        await embed_send(ctx, embed)
+
+    @commands.command(aliases=["us"], brief="")
+    async def updatescore(self, ctx, *args):
+        logger.debug("PREEEEEEE1")
+        if self.is_game_running:
+            logger.debug("PREEEEEEE2")
+            logger.debug(args)
+            self.current_scores[args[0]] += int(args[1])
+            embed = discord.Embed(title="Done!")
+            await embed_send(ctx, embed)
+            await self.print_score_table()
+
     @commands.Cog.listener()
     async def on_message(self, message):
         # logger.debug(message.content)
@@ -156,24 +173,25 @@ class Tlto(commands.Cog):
         #players_list.append("Kai")
         #scores_list.append("20")
 
-        output = table2ascii(
-            header=players_list,
-            body=[scores_list],
-        )
+        if players_list:
+            output = table2ascii(
+                header=players_list,
+                body=[scores_list],
+            )
 
-        message_channel = self.bot.get_channel(self.quiz_score_channel_id)
+            message_channel = self.bot.get_channel(self.quiz_score_channel_id)
 
-        '''
-        if not self.score_message:
-            self.score_message = await message_channel.send("```{}```".format(output))
-        else:
-            await self.score_message.edit(content="```{}```".format(output))
-        '''
-        embed = discord.Embed(title="Score Table:",
-                              description="```{}```".format(output))
-        await embed_send(message_channel, embed)
+            '''
+            if not self.score_message:
+                self.score_message = await message_channel.send("```{}```".format(output))
+            else:
+                await self.score_message.edit(content="```{}```".format(output))
+            '''
+            embed = discord.Embed(title="Score Table:",
+                                  description="```{}```".format(output))
+            await embed_send(message_channel, embed)
 
-        # await message_channel.send("```Score Table:\n{}```".format(output))
+            # await message_channel.send("```Score Table:\n{}```".format(output))
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
