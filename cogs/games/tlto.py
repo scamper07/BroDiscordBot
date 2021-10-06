@@ -1,7 +1,11 @@
 import asyncio
 import collections
+import discord
 
 from discord.ext import commands
+from base_logger import logger
+from table2ascii import table2ascii, Alignment
+from utils import embed_send
 
 EMOJI_RIGHT_ANSWER = "✅"
 EMOJI_WRONG_ANSWER = "❌"
@@ -13,13 +17,17 @@ class Tlto(commands.Cog):
         self.organizer = None
         self.is_game_running = False
         self.is_pounce_enabled = False
+        self.is_round_robin_enabled = False
         self.emojis = [EMOJI_RIGHT_ANSWER, EMOJI_WRONG_ANSWER]
         self.organizer_dm = ""
         self.pounce_answers_counter = 0
         self.current_scores = collections.defaultdict(int)
         # TODO : make this dynamic. Naanu's Sai kumar helps ? or player can use a command .signup
-        self.players = {"Suhan", "Kunal", "Sai", "Vatican Cameos", "scamper"}
+        self.players = {"Suhan", "Kunal", "Sai", "Vatican", "scamper"}
+        self.quiz_guild_id = ""
+        self.quiz_score_channel_id = ""
         self.who_pounced = set()
+        self.score_message = None
 
     @commands.command(brief="Start quiz")
     @commands.has_role("Organizer")
@@ -28,25 +36,39 @@ class Tlto(commands.Cog):
         # Make caller the organizer
         self.organizer = ctx.author.id
         self.is_game_running = True
+        self.quiz_guild_id = ctx.guild.id
+        self.quiz_score_channel_id = ctx.channel.id
+        embed = discord.Embed(title="Welcome to Tell Like That Only Quiz!",
+                              description="Instructions:\n"
+                                          "1. When QM enables Pounce, DM the answer to Bro Bot\n"
+                                          "2. Pounces after QM closes will be discarded\n"
+                                          "3. Answers in Direct Round needs to be told to QM as was done earlier")
+        await embed_send(ctx, embed)
 
-    @commands.command(brief="Toggle pounce")
+    @commands.command(aliases=["p"], brief="Toggle pounce")
     async def pounce(self, ctx):
         if ctx.author.id == self.organizer:
             if self.is_game_running:
+                message_channel = self.bot.get_channel(self.quiz_score_channel_id)
                 if self.is_pounce_enabled:
                     self.is_pounce_enabled = False
+                    # await message_channel.send("Pounce Disabled!")
+                    embed = discord.Embed(title="Pounce Disabled!")
+                    await embed_send(message_channel, embed)
                     # pounce was turned off
                     messages = await ctx.channel.history(limit=(self.pounce_answers_counter + 1)).flatten()
                     scores = self.score_round(messages)
                     # Normal round scoring ? wait ?
-                    res = self.score(scores)
+                    self.score(scores)
+                    await self.print_score_table()
                     await self.round_robin()
-                    await ctx.send(res)
                 else:
                     self.is_pounce_enabled = True
                     print("Pounce enabled")
                     self.who_pounced = set()
                     self.pounce_answers_counter = 0
+                    embed = discord.Embed(title="Pounce Enabled!")
+                    await embed_send(message_channel, embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -57,7 +79,7 @@ class Tlto(commands.Cog):
         if message.guild:
             # Ignore messages from server
             return
-        if message.content == ".pounce" and message.author.id == self.organizer:
+        if message.content == ".pounce" or message.content == ".p" and message.author.id == self.organizer:
             return
         if self.is_game_running:
             if self.is_pounce_enabled:
@@ -76,10 +98,16 @@ class Tlto(commands.Cog):
         # List all the players who did not pounce
         players = self.players - self.who_pounced
         u_organizer = self.bot.get_user(self.organizer)
+        embed = discord.Embed(title="Participants who haven't pounced :point_down: !")
+        await embed_send(u_organizer, embed)
+
         for player in players:
             user_m = await u_organizer.send(player)
             # React with just a tick
             await user_m.add_reaction(self.emojis[0])
+
+        await u_organizer.send("=================================")
+        self.is_round_robin_enabled = True
 
         # On click of a tick score for that particular person
         # (Optional)
@@ -92,17 +120,15 @@ class Tlto(commands.Cog):
         # TODO :: add to final score
         # Calculate total score
         # Update score table
-        res = ""
+
         for name in scores:
             self.current_scores[name] += scores[name]
-            res += name + " : " + str(self.current_scores[name]) + "\n"
-        return res
 
     def score_round(self, messages):
         scores = collections.defaultdict(int)
         messages.reverse()
         for message in messages:
-            if message == ".pounce":
+            if message == ".pounce" or message == ".p":
                 continue
             print(message.content)
             emoji = ""
@@ -118,6 +144,68 @@ class Tlto(commands.Cog):
                 pass
             print(emoji)
         return scores
+
+    async def print_score_table(self):
+        players_list = []
+        scores_list = []
+
+        for name, score in self.current_scores.items():
+            players_list.append(name.strip())
+            scores_list.append(str(score))
+
+        #players_list.append("Kai")
+        #scores_list.append("20")
+
+        output = table2ascii(
+            header=players_list,
+            body=[scores_list],
+        )
+
+        message_channel = self.bot.get_channel(self.quiz_score_channel_id)
+
+        '''
+        if not self.score_message:
+            self.score_message = await message_channel.send("```{}```".format(output))
+        else:
+            await self.score_message.edit(content="```{}```".format(output))
+        '''
+        embed = discord.Embed(title="Score Table:",
+                              description="```{}```".format(output))
+        await embed_send(message_channel, embed)
+
+        # await message_channel.send("```Score Table:\n{}```".format(output))
+
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+        if self.is_game_running:
+            if self.is_round_robin_enabled:
+                if user.id == self.organizer:
+                    if reaction.emoji == EMOJI_RIGHT_ANSWER:
+                        if reaction.count == 2:
+                            name = reaction.message.content
+                            self.current_scores[name] += 10
+                            self.is_round_robin_enabled = False
+                            await self.print_score_table()
+
+            elif self.is_pounce_enabled:
+                if user.id == self.organizer:
+                    contestant_score = reaction.message.content.split(":")
+                    guild = self.bot.get_guild(self.quiz_guild_id)
+                    logger.debug(guild)
+                    user = discord.utils.find(lambda m: m.name == contestant_score[0].strip(), guild.members)
+                    logger.debug(user)
+                    if reaction.emoji == EMOJI_RIGHT_ANSWER:
+                        if reaction.count == 2:
+                            # send message saying correct answer
+                            embed = discord.Embed(title="Correct answer!")
+                            await embed_send(user, embed)
+                            # await user.send("Correct answer!")
+
+                    elif reaction.emoji == EMOJI_WRONG_ANSWER:
+                        if reaction.count == 2:
+                            # await user.send("Wrong answer!")
+                            embed = discord.Embed(title="Wrong answer!")
+                            await embed_send(user, embed)
 
 
 def setup(bot):

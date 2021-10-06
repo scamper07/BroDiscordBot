@@ -8,23 +8,24 @@ from sys import platform
 
 
 # List of cogs to load on bot startup
-BOT_STARTUP_COGS_LIST = [#'cogs.events',
-                         #'cogs.general.general',
-                         #'cogs.general.statistics', #
-                         #'cogs.games.quiz', #
-                         #'cogs.background.daily_advice',
+BOT_STARTUP_COGS_LIST = ['cogs.events',
+                         'cogs.general.general',
+                         'cogs.general.statistics', #
+                         'cogs.games.quiz', #
+                         'cogs.background.daily_advice',
                          #'cogs.background.twitch_stream_notifier',
-                         #'cogs.admin.admin_actions',
+                         'cogs.admin.admin_actions',
                          #'cogs.games.gameboy',
-                         #'cogs.background.daily_news',  #
-                         #'cogs.background.f1_calendar',  #
-                         #'cogs.general.music',
-                         #'cogs.background.status_changer',
-                         #'cogs.background.sleep_remainder',
-                         #'cogs.games.tictactoe',
-                         #'cogs.games.hangman',
-                         #'cogs.games.terraria',
-                         'cogs.games.tlto']
+                         'cogs.background.daily_news',  #
+                         'cogs.background.f1_calendar',  #
+                         'cogs.general.music',
+                         'cogs.background.status_changer',
+                         'cogs.background.sleep_remainder',
+                         'cogs.games.tictactoe',
+                         'cogs.games.hangman',
+                         'cogs.games.terraria',
+                         'cogs.games.tlto'
+                         ]
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=COMMAND_PREFIX, description='Hi I\'m Bro Bot - A general purpose bot', intents=intents)
