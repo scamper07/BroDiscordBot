@@ -4,7 +4,7 @@ import discord
 
 from discord.ext import commands
 from base_logger import logger
-from table2ascii import table2ascii, Alignment
+from table2ascii import table2ascii, Alignment, PresetStyle
 from utils import embed_send
 
 EMOJI_RIGHT_ANSWER = "✅"
@@ -22,8 +22,7 @@ class Tlto(commands.Cog):
         self.organizer_dm = ""
         self.pounce_answers_counter = 0
         self.current_scores = collections.defaultdict(int)
-        # TODO : make this dynamic. Naanu's Sai kumar helps ? or player can use a command .signup
-        self.players = {"Suhan", "Kunal", "Sai", "Vatican", "scamper"}
+        self.players = set()
         self.quiz_guild_id = ""
         self.quiz_score_channel_id = ""
         self.who_pounced = set()
@@ -32,7 +31,6 @@ class Tlto(commands.Cog):
     @commands.command(brief="Start quiz")
     @commands.has_role("Organizer")
     async def tlto(self, ctx):
-        # TODO :: From PESIT server
         # Make caller the organizer
         self.organizer = ctx.author.id
         self.is_game_running = True
@@ -42,7 +40,7 @@ class Tlto(commands.Cog):
                               description="Instructions:\n"
                                           "1. When QM enables Pounce, DM the answer to Bro Bot\n"
                                           "2. Pounces after QM closes will be discarded\n"
-                                          "3. Answers in Direct Round needs to be told to QM as was done earlier")
+                                          "3. Answers in Direct Round should be to told to QM on your turn ")
         await embed_send(ctx, embed)
 
     @commands.command(aliases=["p"], brief="Toggle pounce")
@@ -53,7 +51,7 @@ class Tlto(commands.Cog):
                 if self.is_pounce_enabled:
                     self.is_pounce_enabled = False
                     # await message_channel.send("Pounce Disabled!")
-                    embed = discord.Embed(title="Pounce Disabled!")
+                    embed = discord.Embed(title="Pounce Disabled!\nDirect Round begins!")
                     await embed_send(message_channel, embed)
                     # pounce was turned off
                     messages = await ctx.channel.history(limit=(self.pounce_answers_counter + 1)).flatten()
@@ -71,21 +69,30 @@ class Tlto(commands.Cog):
                     await embed_send(message_channel, embed)
 
     @commands.command(aliases=["sup"], brief="Signup participants for TLTO Quiz")
+    @commands.has_role("Organizer")
     async def signup(self, ctx, *args):
         self.players = set(args[1:])
+        # init scores with zero
+        for name in self.players:
+            self.current_scores[name] = 0
         embed = discord.Embed(title="Done!")
         await embed_send(ctx, embed)
+        await self.print_score_table()
 
-    @commands.command(aliases=["us"], brief="")
+    @commands.command(aliases=["us"], brief="update score for a participant(ADMIN USE ONLY)")
+    @commands.has_role("Organizer")
     async def updatescore(self, ctx, *args):
-        logger.debug("PREEEEEEE1")
         if self.is_game_running:
-            logger.debug("PREEEEEEE2")
-            logger.debug(args)
-            self.current_scores[args[0]] += int(args[1])
-            embed = discord.Embed(title="Done!")
-            await embed_send(ctx, embed)
-            await self.print_score_table()
+            if args:
+                self.current_scores[args[0]] += int(args[1])
+                embed = discord.Embed(title="Done!")
+                await embed_send(ctx, embed)
+                await self.print_score_table()
+            else:
+                embed = discord.Embed(title="Usage:",
+                                      description="updatescore name score\n"
+                                                  "Ex: updatescore john 10")
+                await embed_send(ctx, embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -170,13 +177,11 @@ class Tlto(commands.Cog):
             players_list.append(name.strip())
             scores_list.append(str(score))
 
-        #players_list.append("Kai")
-        #scores_list.append("20")
-
         if players_list:
             output = table2ascii(
                 header=players_list,
                 body=[scores_list],
+                style=PresetStyle.double_box
             )
 
             message_channel = self.bot.get_channel(self.quiz_score_channel_id)
@@ -187,11 +192,10 @@ class Tlto(commands.Cog):
             else:
                 await self.score_message.edit(content="```{}```".format(output))
             '''
-            embed = discord.Embed(title="Score Table:",
-                                  description="```{}```".format(output))
-            await embed_send(message_channel, embed)
-
-            # await message_channel.send("```Score Table:\n{}```".format(output))
+            # embed = discord.Embed(title="Score Table:",
+            #                       description="```{}```".format(output))
+            # await embed_send(message_channel, embed)
+            await message_channel.send("```Score Table:\n{}```".format(output))
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
