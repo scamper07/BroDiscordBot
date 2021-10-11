@@ -94,7 +94,7 @@ class Music(commands.Cog):
         else:
             self.is_playing = False
 
-    @commands.command(aliases=['p'], help="Plays a selected song from youtube")
+    @commands.command(aliases=['pl'], help="Plays a selected song from youtube")
     async def play(self, ctx, *args):
         query = " ".join(args)
 

@@ -168,7 +168,7 @@ async def get_public_url():
 
 async def embed_send(ctx, embed, edit_flag=0):
     """Function used to get a send embeds based on the type of message object"""
-    if isinstance(ctx, discord.ext.commands.context.Context) or isinstance(ctx, discord.message.Message) or isinstance(ctx, discord.channel.TextChannel):
+    if isinstance(ctx, discord.ext.commands.context.Context) or isinstance(ctx, discord.message.Message) or isinstance(ctx, discord.channel.TextChannel) or isinstance(ctx, discord.member.Member) or isinstance(ctx, discord.user.User):
         if edit_flag:
             await ctx.edit(content="", embed=embed)
         else:
