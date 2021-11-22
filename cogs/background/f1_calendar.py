@@ -4,7 +4,7 @@ import discord
 from aiohttp import web
 from discord.ext import commands
 from base_logger import logger
-from config import TEST_CHANNEL_ID, ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID, F1_DISCUSSION_CHANNEL_ID
+from config import TEST_CHANNEL_ID, ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID, F1_DISCUSSION_CHANNEL_ID, GOODIE_BAG_OFFICIAL_GENERAL_CHANNEL
 
 
 class WebHookListener(commands.Cog):
