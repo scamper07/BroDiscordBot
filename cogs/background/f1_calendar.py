@@ -11,7 +11,7 @@ class WebHookListener(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # self.channel_list = [TEST_CHANNEL_ID]
-        self.channel_list = [F1_DISCUSSION_CHANNEL_ID]
+        self.channel_list = [F1_DISCUSSION_CHANNEL_ID, GOODIE_BAG_OFFICIAL_GENERAL_CHANNEL]
 
     async def webserver(self):
         async def handler(request):
