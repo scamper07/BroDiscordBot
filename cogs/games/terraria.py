@@ -64,7 +64,7 @@ class Terraria(commands.Cog):
     async def getworldfile(self, ctx):
         await backup_world_file(ctx)
 
-    @tasks.loop(hours=24.0)
+    @tasks.loop(hours=168)
     async def daily_world_file_backup(self):
         message_channel = self.bot.get_channel(TERRARIA_BACKUP_CHANNEL_ID)
         await backup_world_file(message_channel)

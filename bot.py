@@ -13,7 +13,7 @@ BOT_STARTUP_COGS_LIST = ['cogs.events',
                          'cogs.general.statistics', #
                          'cogs.games.quiz', #
                          'cogs.background.daily_advice',
-                         #'cogs.background.twitch_stream_notifier',
+                         'cogs.background.twitch_stream_notifier',
                          'cogs.admin.admin_actions',
                          #'cogs.games.gameboy',
                          'cogs.background.daily_news',  #

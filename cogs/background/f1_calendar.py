@@ -4,14 +4,14 @@ import discord
 from aiohttp import web
 from discord.ext import commands
 from base_logger import logger
-from config import TEST_CHANNEL_ID, ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID, F1_DISCUSSION_CHANNEL_ID
+from config import TEST_CHANNEL_ID, ALPHA_MALES_GOODIE_BAG_CHANNEL, GENERAL_CHANNEL_ID, F1_DISCUSSION_CHANNEL_ID, GOODIE_BAG_OFFICIAL_GENERAL_CHANNEL
 
 
 class WebHookListener(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # self.channel_list = [TEST_CHANNEL_ID]
-        self.channel_list = [F1_DISCUSSION_CHANNEL_ID]
+        self.channel_list = [F1_DISCUSSION_CHANNEL_ID, GOODIE_BAG_OFFICIAL_GENERAL_CHANNEL]
 
     async def webserver(self):
         async def handler(request):
@@ -49,6 +49,14 @@ class WebHookListener(commands.Cog):
                         gp_place = "Sakhir"
                     elif "abu" in res['title'].lower():
                         gp_place = "Abu%20Dhab"
+                    elif "mexic" in res['title'].lower():
+                        gp_place = "Mexico"
+                    elif "brazi" in res['title'].lower():
+                        gp_place = "Brazil"
+                    elif "qatar" in res['title'].lower():
+                        gp_place = "Qatar"
+                    elif "arabi" in res['title'].lower():
+                        gp_place = "Saudi%20Arabia"
                     else:
                         gp_place = ""
 
