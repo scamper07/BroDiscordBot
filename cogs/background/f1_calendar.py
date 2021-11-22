@@ -49,6 +49,14 @@ class WebHookListener(commands.Cog):
                         gp_place = "Sakhir"
                     elif "abu" in res['title'].lower():
                         gp_place = "Abu%20Dhab"
+                    elif "mexic" in res['title'].lower():
+                        gp_place = "Mexico"
+                    elif "brazi" in res['title'].lower():
+                        gp_place = "Brazil"
+                    elif "qatar" in res['title'].lower():
+                        gp_place = "Qatar"
+                    elif "arabi" in res['title'].lower():
+                        gp_place = "Saudi%20Arabia"
                     else:
                         gp_place = ""
 

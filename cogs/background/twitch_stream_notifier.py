@@ -69,8 +69,9 @@ class Twitch(commands.Cog):
                     logger.debug(json_response)
 
                     if json_response['data']:
-                        path = Path(__file__).parent / "../../data/streamers.txt"
-                        with open(path, "a") as f:
+                        path = os.path.join(ROOT_DIR, 'data/streamers.txt')
+                        # path = Path(__file__).parent / "../../data/streamers.txt"
+                        with open(path, "a+") as f:
                             f.write(username+'\n')
                         await ctx.send("Streamer added. Will notify you when **{}** goes live!".format(username))
                     else:
