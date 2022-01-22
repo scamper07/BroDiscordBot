@@ -235,16 +235,17 @@ async def backup_world_file(ctx):
         if backup_files:
             # If there were backup files compare current file w backup files
             for file in latest_files:
-                result = filecmp.cmp(latest_files[file], backup_files[file], shallow=False)
-                # Latest world files become the backup, so clean backup folder and copy latest ones into it.
-                for f in backup_files:
-                    # Remove the old backup
-                    os.remove(backup_files[f])
-                    # Copy current file into backup foolder
-                    copyfile(latest_files[f], os.path.join("/home/pi/tshock/Worlds/backup/", f))
-                if result:
-                    # They are same, tell the caller the files are same and no need to take any action
-                    return 1
+                if file in backup_files:
+                    result = filecmp.cmp(latest_files[file], backup_files[file], shallow=False)
+                    # Latest world files become the backup, so clean backup folder and copy latest ones into it.
+                    for f in backup_files:
+                        # Remove the old backup
+                        os.remove(backup_files[f])
+                        # Copy current file into backup foolder
+                        copyfile(latest_files[f], os.path.join("/home/pi/tshock/Worlds/backup/", f))
+                    if result:
+                        # They are same, tell the caller the files are same and no need to take any action
+                        return 1
         # If the backup files never existed then generate new backup and send OR (1st run)
         # If the backup files were out of date, then generate new backup from current and send
         await generate_backup_and_send(ctx)
