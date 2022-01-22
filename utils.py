@@ -12,6 +12,9 @@ from base_logger import logger
 from config import BRO_NEWS_WEBHOOK_URL, OUTPUT_WORLD_FILE
 from constants import ERROR_GIF
 from pathlib import Path
+import glob
+from shutil import copyfile
+import filecmp
 
 
 async def get_advice(message_channel):
@@ -168,7 +171,9 @@ async def get_public_url():
 
 async def embed_send(ctx, embed, edit_flag=0):
     """Function used to get a send embeds based on the type of message object"""
-    if isinstance(ctx, discord.ext.commands.context.Context) or isinstance(ctx, discord.message.Message) or isinstance(ctx, discord.channel.TextChannel) or isinstance(ctx, discord.member.Member) or isinstance(ctx, discord.user.User):
+    if isinstance(ctx, discord.ext.commands.context.Context) or isinstance(ctx, discord.message.Message) or isinstance(
+            ctx, discord.channel.TextChannel) or isinstance(ctx, discord.member.Member) or isinstance(ctx,
+                                                                                                      discord.user.User):
         if edit_flag:
             await ctx.edit(content="", embed=embed)
         else:
@@ -212,6 +217,42 @@ async def get_terraria_url():
 
 
 async def backup_world_file(ctx):
+    try:
+        # files from previous backup
+        backup_files = {}
+        for bworld_file in glob.glob("/home/pi/tshock/Worlds/backup/*.wld"):
+            backup_files[bworld_file] = (os.path.join("/home/pi/tshock/Worlds/backup/", bworld_file))
+        # current files
+        latest_files = {}
+        for world_file in glob.glob("/home/pi/tshock/Worlds/*.wld"):
+            latest_files[world_file] = (os.path.join("/home/pi/tshock/Worlds/", world_file))
+            if not backup_files:
+                # First seed
+                # TODO :: Create backup folder?
+                copyfile(latest_files[world_file], "/home/pi/tshock/Worlds/backup/")
+
+        if backup_files:
+            # If there were backup files compare current file w backup files
+            for file in latest_files:
+                result = filecmp.cmp(latest_files[file], backup_files[file], shallow=False)
+                # Latest world files become the backup, so clean backup folder and copy latest ones into it.
+                for f in backup_files:
+                    # Remove the old backup
+                    os.remove(backup_files[f])
+                    # Copy current file into backup foolder
+                    copyfile(latest_files[f], "/home/pi/tshock/Worlds/backup/")
+                if result:
+                    # They are same, tell the caller the files are same and no need to take any action
+                    return 1
+        # If the backup files never existed then generate new backup and send OR (1st run)
+        # If the backup files were out of date, then generate new backup from current and send
+        await generate_backup_and_send(ctx)
+        return 0
+    except Exception as e:
+        logger.exception(e)
+
+
+async def generate_backup_and_send(ctx):
     try:
         embed = discord.Embed(title="Generating file...Please wait...")
         await embed_send(ctx, embed)
