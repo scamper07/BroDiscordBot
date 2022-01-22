@@ -228,8 +228,9 @@ async def backup_world_file(ctx):
             latest_files[world_file] = (os.path.join("/home/pi/tshock/Worlds/", world_file))
             if not backup_files:
                 # First seed
-                # TODO :: Create backup folder?
-                copyfile(latest_files[world_file], "/home/pi/tshock/Worlds/backup/")
+                if not os.path.exists("/home/pi/tshock/Worlds/backup/"):
+                    os.makedirs("/home/pi/tshock/Worlds/backup/")
+                copyfile(latest_files[world_file], os.path.join("/home/pi/tshock/Worlds/backup/", world_file))
 
         if backup_files:
             # If there were backup files compare current file w backup files
@@ -240,7 +241,7 @@ async def backup_world_file(ctx):
                     # Remove the old backup
                     os.remove(backup_files[f])
                     # Copy current file into backup foolder
-                    copyfile(latest_files[f], "/home/pi/tshock/Worlds/backup/")
+                    copyfile(latest_files[f], os.path.join("/home/pi/tshock/Worlds/backup/", f))
                 if result:
                     # They are same, tell the caller the files are same and no need to take any action
                     return 1
