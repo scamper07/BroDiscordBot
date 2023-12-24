@@ -1,0 +1,10 @@
+version: '3.3'
+
+services:
+  bro:
+    container_name: brodiscordbot
+    build: .
+    environment:
+      - DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN
+    ports:
+      - "8999:8999"
