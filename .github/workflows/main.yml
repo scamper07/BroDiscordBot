@@ -16,7 +16,7 @@ jobs:
   build:
 
     runs-on: self-hosted
-    environment: anton
+    environment: brodiscordbot
 
     steps:
     - uses: actions/checkout@v3
