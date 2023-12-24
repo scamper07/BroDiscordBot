@@ -1,3 +1,5 @@
+import discord
+
 from discord.ext import commands
 
 
@@ -7,7 +9,8 @@ class General(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        pass
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.watching, name="my guts being removed"))
+
 
     @commands.hybrid_command(name="intro")
     async def intro(self, ctx: commands.Context) -> None:
