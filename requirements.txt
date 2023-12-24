@@ -1,6 +1,6 @@
 async_timeout==3.0.1
 python_uinput==0.11.2
-aiohttp==3.7.4
+aiohttp==3.8.5
 discord==1.7.3
 youtube_dl==2021.1.16
 nltk
