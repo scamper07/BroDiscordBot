@@ -1,2 +1,2 @@
 # BroDiscordBot
-A Discord bot created to learn Python stuff
+A Discord bot created to learn Python
