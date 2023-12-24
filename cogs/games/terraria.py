@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-from utils import embed_send, get_terraria_url, backup_world_file, sleep_until_time
+from utils import embed_send, get_terraria_url, backup_world_file, sleep_until_time, generate_backup_and_send
 from base_logger import logger
 import subprocess
 from pathlib import Path
@@ -62,7 +62,7 @@ class Terraria(commands.Cog):
     @commands.command(aliases=["gwf"], brief='gets world files')
     @commands.has_role("Terraria")
     async def getworldfile(self, ctx):
-        await backup_world_file(ctx)
+        await generate_backup_and_send(ctx)
 
     @tasks.loop(hours=168)
     async def daily_world_file_backup(self):
