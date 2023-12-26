@@ -4,6 +4,10 @@ from discord.ext import commands
 
 
 class BotStatsAPI(commands.Cog):
+    """
+    Cog to serve web APIs
+    """
+
     def __init__(self, bot):
         self.bot = bot
 
