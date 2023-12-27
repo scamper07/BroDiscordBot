@@ -1,0 +1,27 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: brodiscordbot-dev
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: self-hosted
+    environment: development
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Rebuild and start container
+      run: |
+        docker-compose up -d --build --force-recreate bro 
+      env:
+        DISCORD_BOT_TOKEN: ${{secrets.DISCORD_BOT_TOKEN}}
