@@ -8,7 +8,7 @@ setup: requirements.txt
 
 lint:
 	black . --line-length 89 --include src
-	flake8 --ignore=E203, E266, E501, W503, F403, F401
+	flake8 --ignore=E203,E266,E501,W503,F403,F401
 
 test:
 	pytest -vv
