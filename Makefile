@@ -2,10 +2,6 @@ setup-venv:
 	pip install virtualenv
 	python -m venv bot-env
 
-setup-dev: requirements-dev.txt
-	pip install -r requirements-dev.txt
-	pre-commit install
-
 setup: requirements.txt
 	pip install -r requirements.txt
 

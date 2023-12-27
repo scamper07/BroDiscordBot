@@ -1,6 +1,6 @@
 import discord
 
-from constants import BOT_NAME, BOT_VERSION_INFO
+from constants import BOT_NAME
 
 
 async def send_embed(
@@ -22,5 +22,5 @@ async def send_embed(
 
     embed.set_image(url=image_url)
     embed.set_author(name=BOT_NAME, icon_url=self.bot.user.avatar.url)
-    embed.set_footer(text=f"Bot is running version {BOT_VERSION_INFO}")
+    embed.set_footer(text=f"Powered by discord.py v{discord.__version__}")
     await ctx.send(embed=embed)
