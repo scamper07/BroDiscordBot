@@ -7,6 +7,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+    types:
+      - closed
   workflow_dispatch:
 
 permissions:
@@ -45,7 +47,7 @@ jobs:
   DeployToProd:
     name: Deploy to production 
     needs: [DeployToDev]
-    if: github.event.ref == 'refs/heads/main'  
+    if: github.event.pull_request.merged == true 
     runs-on: self-hosted
     environment: production
 
