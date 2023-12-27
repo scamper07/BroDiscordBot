@@ -1,7 +1,8 @@
 # BroDiscordBot
 A simple discord bot created to learn Python
 
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/discord.py)
+<!-- ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/discord.py) -->
+![Python 3.9](https://img.shields.io/badge/python-3.9+-blue.svg)
 ![GitHub contributors](https://img.shields.io/github/contributors/scamper07/BroDiscordBot)
 ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/scamper07/BroDiscordBot/main.yml)
 ![GitHub License](https://img.shields.io/github/license/scamper07/BroDiscordBot)
@@ -13,8 +14,9 @@ A simple discord bot created to learn Python
 ### Pre requisites
 1. Create a Bot application at 	[Discord Developer Portal](https://discord.com/developers/docs/getting-started) and copy client secret
 2. Software
-    - `Python3.8 or higher`
+    - `Python 3.9 or higher`
     - `Make`
+    - `Docker` (optional)
 
 ### Manual setup
 1. Clone the repo:
