@@ -16,7 +16,7 @@ A simple discord bot created to learn Python
     - `Python3.8 or higher`
     - `Make`
 
-### Manual
+### Manual setup
 1. Clone the repo:
     ```
     git clone https://github.com/scamper07/BroDiscordBot.git
@@ -48,7 +48,7 @@ A simple discord bot created to learn Python
     ```
 
 Or<br>
-### Automated using Docker
+### Automated setup using Docker
 1. Run the following command
     ```
     docker-compose up -d --build --force-recreate bro
