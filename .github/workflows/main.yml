@@ -1,27 +1,63 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+# This workflow will build, test and deploy to development and production environments
 
-name: brodiscordbot-dev
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build:
 
-    runs-on: self-hosted
+  DeployToDev:
+    name: Deploy to development 
+    if: github.event_name == 'pull_request'    
+    runs-on: ubuntu-latest
     environment: development
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10']
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Rebuild and start container
-      run: |
-        docker-compose up -d --build --force-recreate bro 
-      env:
-        DISCORD_BOT_TOKEN: ${{secrets.DISCORD_BOT_TOKEN}}
+      - name: Checkout repo
+        uses: actions/checkout@main
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set up virtual environment
+        run:  make setup-venv
+      - name: Set up Python packages
+        run:  make setup
+      - name: Run linter
+        run:  make lint
+      - name: Run Tests
+        run:  make test
+      - name: Deploy
+        run:  echo Bot deployed!
+
+
+  DeployToProd:
+    name: Deploy to production 
+    needs: [DeployToDev]
+    if: github.event.ref == 'refs/heads/main'  
+    runs-on: self-hosted
+    environment: production
+
+    steps:
+      - name: Deploy        
+        run: echo Deploying to Production environment
+      - uses: actions/checkout@v3
+      - name: Rebuild and start container
+        run: |
+          docker-compose up -d --build --force-recreate bro 
+        env:
+          DISCORD_BOT_TOKEN: ${{secrets.DISCORD_BOT_TOKEN}}
+      - name: Test
+        run: echo Executing tests...
+        
