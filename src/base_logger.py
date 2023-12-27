@@ -15,8 +15,7 @@ handler = TimedRotatingFileHandler(
 )
 handler.setFormatter(
     logging.Formatter(
-        "%(asctime)s:%(levelname)s:%(name)s:[%(filename)s:%(lineno)d] %("
-        "message)s",
+        "%(asctime)s:%(levelname)s:%(name)s:[%(filename)s:%(lineno)d] %(" "message)s",
         datefmt="%d-%b-%y %H:%M:%S",
     )
 )

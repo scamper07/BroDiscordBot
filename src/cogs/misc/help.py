@@ -29,26 +29,25 @@ class Help(commands.Cog):
 
         # adding module and commands list and description
         for cog in self.bot.cogs:
-            commands = self.bot.get_cog(cog).get_commands()
-            if commands:
-                embed.add_field(name=cog, value="", inline=False)
-                for command in commands:
-                    if not command.hidden:
-                        command_desc = f" `{COMMAND_PREFIX}{command.name}`\
-                            \t{command.help}\n"
-                        embed.add_field(
-                            name=command_desc, value="", inline=False
-                        )
+            if cog != "Help":
+                commands = self.bot.get_cog(cog).get_commands()
+                if commands:
+                    embed.add_field(name=cog, value="", inline=False)
+                    for command in commands:
+                        if not command.hidden:
+                            command_desc = (
+                                f" `{COMMAND_PREFIX}{command.name:<8}`"
+                                f"  {command.help}\n"
+                            )
+                            embed.add_field(name=command_desc, value="", inline=False)
 
         # adding info about creator
-        embed.add_field(name="", value="", inline=False)
         embed.add_field(
             name="About",
-            value=f"This bot is developed by {BOT_CREATOR_NAME}, based on \
-                discord.py\nPlease visit {BOT_GITHUB_URL} to submit ideas \
-                or issues.",
+            value=f"This bot is developed by {BOT_CREATOR_NAME}"
+            f"\nVisit {BOT_GITHUB_URL} to submit ideas or issues.",
         )
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
+        # embed.set_thumbnail(url=self.bot.user.avatar.url)
 
         await send_embed(self, ctx, embed)
 

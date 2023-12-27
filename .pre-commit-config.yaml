@@ -3,8 +3,9 @@ repos:
     rev: 22.8.0
     hooks:
     -   id: black
-        exclude: bot-env
+        exclude: ^(bot-env/|archive/)
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v1.2.3
     hooks:
     - id: flake8
+      exclude: ^(bot-env/|archive/)
