@@ -43,8 +43,7 @@ jobs:
 
 
   DeployToProd:
-    name: Deploy to production 
-    needs: [DeployToDev]
+    name: Deploy to production     
     if: github.event.pull_request.merged == true 
     runs-on: self-hosted
     environment: production
