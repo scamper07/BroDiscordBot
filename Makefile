@@ -4,6 +4,7 @@ setup-venv:
 
 setup: requirements.txt
 	pip install -r requirements.txt
+	pre-commit install
 
 lint:
 	black . --line-length 79 --include src
