@@ -39,9 +39,7 @@ class Help(commands.Cog):
                                 f" `{COMMAND_PREFIX}{command.name:<8}`"
                                 f"  {command.help}\n"
                             )
-                            embed.add_field(
-                                name=command_desc, value="", inline=False
-                            )
+                            embed.add_field(name=command_desc, value="", inline=False)
 
         # adding info about creator
         embed.add_field(
