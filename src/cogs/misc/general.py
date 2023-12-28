@@ -29,7 +29,7 @@ class General(commands.Cog):
     async def xkcd(self, ctx: commands.Context) -> None:
         """Sends out a random xkcd comic"""
         async with ctx.typing():
-            json_response = await self.get_xkcd_comic()
+            json_response = await UtilGeneral.get_xkcd_comic()
             if json_response:
                 await send_embed(
                     self,
@@ -45,6 +45,19 @@ class General(commands.Cog):
                     color=discord.Color.red(),
                     image_url=BOT_ERROR_GIF,
                 )
+
+
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(General(bot))
+
+
+class UtilGeneral:
+    """
+    Utility class for General Cog
+    """
+
+    def __init__(self) -> None:
+        pass
 
     async def get_xkcd_comic():
         """Utility function to fetch random xkcd comic"""
@@ -72,7 +85,3 @@ class General(commands.Cog):
             await session.close()
 
         return json_response
-
-
-async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(General(bot))

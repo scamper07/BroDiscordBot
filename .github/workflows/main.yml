@@ -56,6 +56,4 @@ jobs:
           docker-compose up -d --build --force-recreate bro 
         env:
           DISCORD_BOT_TOKEN: ${{secrets.DISCORD_BOT_TOKEN}}
-      - name: Test
-        run: echo Executing tests...
         
