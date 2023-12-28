@@ -7,11 +7,14 @@ setup: requirements.txt
 	pre-commit install
 
 lint:
-	black . --line-length 89 --include src
-	flake8 --ignore=E203,E266,E501,W503,F403,F401
+	black . --include src
+	flake8 --extend-ignore=E203
 
 test:
 	pytest -vv
 
+run:
+	python src/bot.py
+	
 clean:
 	rm -rf __pycache__

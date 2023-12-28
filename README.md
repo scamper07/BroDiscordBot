@@ -46,7 +46,7 @@ A simple discord bot created to learn Python
 
 6. Start the bot
     ```
-    python3 src/main.py
+    make run
     ```
 
 Or<br>

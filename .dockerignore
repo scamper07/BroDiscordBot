@@ -2,3 +2,4 @@ __pycache__
 bot-env
 .env
 archive
+.pytest_cache
