@@ -3,3 +3,4 @@ bot-env
 .env
 .vscode
 logs
+.pytest_cache

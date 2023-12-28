@@ -29,16 +29,35 @@ class General(commands.Cog):
     async def xkcd(self, ctx: commands.Context) -> None:
         """Sends out a random xkcd comic"""
         async with ctx.typing():
-            try:
-                session = aiohttp.ClientSession()
-                # fetch latest comic
-                url = "https://xkcd.com/info.0.json"
-                async with session.get(url) as resp:
-                    data = await resp.read()
-                    json_response = json.loads(data)
+            json_response = await self.get_xkcd_comic()
+            if json_response:
+                await send_embed(
+                    self,
+                    ctx=ctx,
+                    title=json_response["title"],
+                    image_url=json_response["img"],
+                )
+            else:
+                await send_embed(
+                    self,
+                    ctx=ctx,
+                    title="Failed to fetch comic, try again later",
+                    color=discord.Color.red(),
+                    image_url=BOT_ERROR_GIF,
+                )
+
+    async def get_xkcd_comic():
+        """Utility function to fetch random xkcd comic"""
+        json_response = None
+        try:
+            session = aiohttp.ClientSession()
+            # fetch latest comic to get last (latest) index
+            url = "https://xkcd.com/info.0.json"
+            async with session.get(url) as resp:
+                data = await resp.read()
 
                 # select random comic from 1 to latest
-                comic_number = random.randint(1, json_response["num"])
+                comic_number = random.randint(1, json.loads(data)["num"])
                 logger.debug(f"Comic number: {comic_number}")
 
                 url = f"https://xkcd.com/{comic_number}/info.0.json"
@@ -46,24 +65,13 @@ class General(commands.Cog):
                     data = await resp.read()
                     json_response = json.loads(data)
 
-                await send_embed(
-                    self,
-                    ctx=ctx,
-                    title=json_response["title"],
-                    image_url=json_response["img"],
-                )
+        except Exception as err:
+            logger.exception(err)
 
-            except Exception as err:
-                logger.exception(err)
-                await send_embed(
-                    self,
-                    ctx=ctx,
-                    color=discord.Color.red(),
-                    image_url=BOT_ERROR_GIF,
-                )
+        finally:
+            await session.close()
 
-            finally:
-                await session.close()
+        return json_response
 
 
 async def setup(bot: commands.Bot) -> None:
