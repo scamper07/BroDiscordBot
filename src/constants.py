@@ -21,7 +21,11 @@ COGS = [
     "cogs.misc.general",
     "cogs.background.botstatsapi",
     "cogs.background.events",
+    "cogs.admin.admin",
 ]
+
+# List of cogs not to be displayed in help command
+HELP_HIDDEN_COGS = ["Help", "AdminOnly"]
 
 # Root direction location
 ROOT_DIR = os.path.abspath(os.curdir)

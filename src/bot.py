@@ -24,11 +24,4 @@ async def setup_hook() -> None:
         logger.exception(f"Failed to load cog {cog}. ERROR: {err}")
 
 
-@bot.command()
-async def sync(ctx):
-    await bot.tree.sync()
-    logger.debug("Command tree synced!")
-    await ctx.send("Command tree synced!")
-
-
 bot.run(os.environ.get("DISCORD_BOT_TOKEN"))

@@ -4,7 +4,9 @@ from discord.ext import commands
 from constants import (
     BOT_CREATOR_NAME,
     BOT_GITHUB_URL,
+    BOT_NAME,
     COMMAND_PREFIX,
+    HELP_HIDDEN_COGS,
 )
 from utility import send_embed
 
@@ -29,7 +31,7 @@ class Help(commands.Cog):
 
         # adding module and commands list and description
         for cog in self.bot.cogs:
-            if cog != "Help":
+            if cog not in HELP_HIDDEN_COGS:
                 commands = self.bot.get_cog(cog).get_commands()
                 if commands:
                     embed.add_field(name=cog, value="", inline=False)
@@ -47,7 +49,8 @@ class Help(commands.Cog):
             value=f"This bot is developed by {BOT_CREATOR_NAME}"
             f"\nVisit {BOT_GITHUB_URL} to submit ideas or issues.",
         )
-        # embed.set_thumbnail(url=self.bot.user.avatar.url)
+
+        embed.set_author(name=BOT_NAME, icon_url=self.bot.user.avatar.url)
 
         await send_embed(self, ctx, embed)
 
