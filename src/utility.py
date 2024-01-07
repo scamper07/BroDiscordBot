@@ -1,7 +1,5 @@
 import discord
 
-from constants import BOT_NAME
-
 
 async def send_embed(
     self,
@@ -12,6 +10,7 @@ async def send_embed(
     url=None,
     color=discord.Colour.purple(),
     image_url=None,
+    dm=False,
 ):
     """Function to send custom embed with default properties"""
 
@@ -21,6 +20,8 @@ async def send_embed(
         )
 
     embed.set_image(url=image_url)
-    embed.set_author(name=BOT_NAME, icon_url=self.bot.user.avatar.url)
     embed.set_footer(text=f"Powered by discord.py v{discord.__version__}")
-    await ctx.send(embed=embed)
+    if not dm:
+        await ctx.send(embed=embed)
+    else:
+        await ctx.author.send(embed=embed)
