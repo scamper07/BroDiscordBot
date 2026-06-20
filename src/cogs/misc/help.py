@@ -29,19 +29,22 @@ class Help(commands.Cog):
             description="Help information about supported commands",
         )
 
-        # adding module and commands list and description
+        # one field per cog, listing its visible commands (embeds allow max 25 fields)
         for cog in self.bot.cogs:
-            if cog not in HELP_HIDDEN_COGS:
-                commands = self.bot.get_cog(cog).get_commands()
-                if commands:
-                    embed.add_field(name=cog, value="", inline=False)
-                    for command in commands:
-                        if not command.hidden:
-                            command_desc = (
-                                f" `{COMMAND_PREFIX}{command.name:<8}`"
-                                f"  {command.help}\n"
-                            )
-                            embed.add_field(name=command_desc, value="", inline=False)
+            if cog in HELP_HIDDEN_COGS:
+                continue
+            visible = [
+                command
+                for command in self.bot.get_cog(cog).get_commands()
+                if not command.hidden
+            ]
+            if not visible:
+                continue
+            value = "".join(
+                f"`{COMMAND_PREFIX}{command.name:<10}` {command.help}\n"
+                for command in visible
+            )
+            embed.add_field(name=cog, value=value, inline=False)
 
         # adding info about creator
         embed.add_field(
@@ -50,9 +53,9 @@ class Help(commands.Cog):
             f"\nVisit {BOT_GITHUB_URL} to submit ideas or issues.",
         )
 
-        embed.set_author(name=BOT_NAME, icon_url=self.bot.user.avatar.url)
+        embed.set_author(name=BOT_NAME, icon_url=self.bot.user.display_avatar.url)
 
-        await send_embed(self, ctx, embed)
+        await send_embed(ctx, embed)
 
 
 async def setup(bot: commands.Bot) -> None:
