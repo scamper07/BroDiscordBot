@@ -39,5 +39,5 @@ tomli==2.0.1
 typing_extensions==4.8.0
 virtualenv==20.25.0
 yarl==1.9.2
-yt-dlp==2026.6.9
+yt-dlp
 # python-uinput is only required on the Raspberry Pi host for the gameboy cog

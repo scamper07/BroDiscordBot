@@ -45,6 +45,18 @@ class Quiz(commands.Cog):
 
         return category, question, options, correct_answer
 
+    async def _fresh_question(self, asked):
+        """Fetch a question not already asked this session (best effort)"""
+        result = None
+        for _ in range(8):
+            result = await self.generate_quiz_question()
+            _, question, options, _ = result
+            # bubble up fetch failures, or accept the first unseen question
+            if len(options) < 4 or question not in asked:
+                return result
+        # pool likely exhausted; return the last fetched question anyway
+        return result
+
     @commands.hybrid_command(description="Starts a game of quiz")
     async def quiz(self, ctx: commands.Context, arg: str = None) -> None:
         """Starts a game of quiz, or configures it (easy/medium/hard/stop/number)"""
@@ -94,6 +106,7 @@ class Quiz(commands.Cog):
 
         question_number = 1
         participant_score = {}
+        asked = set()  # question texts already used this session (no repeats)
         # keycap emojis require the U+FE0F variation selector for Discord reactions
         emojis = [
             f"{num}\N{VARIATION SELECTOR-16}\N{COMBINING ENCLOSING KEYCAP}"
@@ -105,11 +118,12 @@ class Quiz(commands.Cog):
                 return
 
             async with ctx.typing():
-                _, question, options, answer = await self.generate_quiz_question()
+                _, question, options, answer = await self._fresh_question(asked)
                 if len(options) < 4:
                     await ctx.send("```Could not fetch a question, try again later```")
                     self.QUIZ_MODE = False
                     return
+                asked.add(question)
                 message = await ctx.send(
                     html.unescape(
                         f"\n**Question {question_number}**\n"
