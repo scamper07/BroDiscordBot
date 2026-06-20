@@ -31,7 +31,7 @@ class DailyAdvice(commands.Cog):
             if not message_channel:
                 continue
             await message_channel.send("**Today's advice for the bros**")
-            if data:
+            if data and data.get("slip"):
                 await message_channel.send(
                     embed=discord.Embed(title=data["slip"]["advice"])
                 )

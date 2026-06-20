@@ -94,7 +94,11 @@ class Quiz(commands.Cog):
 
         question_number = 1
         participant_score = {}
-        emojis = [f"{num}\N{COMBINING ENCLOSING KEYCAP}" for num in range(1, 5)]
+        # keycap emojis require the U+FE0F variation selector for Discord reactions
+        emojis = [
+            f"{num}\N{VARIATION SELECTOR-16}\N{COMBINING ENCLOSING KEYCAP}"
+            for num in range(1, 5)
+        ]
 
         while question_number <= self.QUIZ_MAX_QUESTIONS:
             if not self.QUIZ_MODE:
@@ -117,7 +121,10 @@ class Quiz(commands.Cog):
                     )
                 )
             for emoji in emojis:
-                await message.add_reaction(emoji)
+                try:
+                    await message.add_reaction(emoji)
+                except Exception as err:
+                    logger.exception(err)
                 await asyncio.sleep(0.75)
 
             participant_response = {}

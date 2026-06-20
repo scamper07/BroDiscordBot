@@ -93,7 +93,7 @@ TWITCH_STILL_STREAMING = 2
 
 # External API endpoints
 ADVICE_API_URL = "https://api.adviceslip.com/advice"
-FACT_API_URL = "https://uselessfacts.jsph.pl/api/v2/facts/random?language=en"
+FACT_API_URL = "https://catfact.ninja/fact"
 INSULT_API_URL = "https://insult.mattbas.org/api/insult.json"
 XKCD_LATEST_URL = "https://xkcd.com/info.0.json"
 XKCD_COMIC_URL = "https://xkcd.com/{}/info.0.json"

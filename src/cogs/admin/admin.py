@@ -1,3 +1,4 @@
+import asyncio
 import os
 import subprocess
 from typing import Literal
@@ -102,42 +103,20 @@ class Admin(commands.Cog):
         """Shows my host hardware/software information"""
         async with ctx.typing():
             try:
-                embed = discord.Embed(
-                    title="System Info",
-                    description="Showing my host hardware/software information",
-                    colour=discord.Color.gold(),
+                output = await asyncio.to_thread(
+                    subprocess.run,
+                    ["neofetch", "--stdout"],
+                    capture_output=True,
+                    text=True,
                 )
-                embed.set_footer(text="Hope that was helpful, bye!")
-                embed.set_author(
-                    name=BOT_NAME, icon_url=self.bot.user.display_avatar.url
+            except FileNotFoundError:
+                await send_embed(
+                    ctx=ctx,
+                    title="neofetch is not installed on the host",
+                    color=discord.Color.red(),
+                    image_url=BOT_ERROR_GIF,
                 )
-                if ctx.guild and ctx.guild.icon:
-                    embed.set_thumbnail(url=ctx.guild.icon.url)
-
-                result = subprocess.Popen(
-                    ["neofetch", "--stdout"], stdout=subprocess.PIPE
-                )
-                for line in result.stdout:
-                    line = line.decode("utf-8").strip("\n").split(":")
-                    if len(line) == 2:
-                        inline = line[0] not in ("OS", "Host")
-                        embed.add_field(name=line[0], value=line[1], inline=inline)
-
-                # Raspberry Pi only extras
-                if os.uname()[1] == "anton":
-                    temp = subprocess.Popen(
-                        ["/opt/vc/bin/vcgencmd", "measure_temp"],
-                        stdout=subprocess.PIPE,
-                    )
-                    for line in temp.stdout:
-                        line = line.decode("utf-8").strip("\n").split("=")
-                        if len(line) == 2:
-                            embed.add_field(name="CPU Temp", value=line[1], inline=True)
-
-                    url = await Admin.get_public_url()
-                    embed.add_field(name="Public URL", value=url, inline=False)
-
-                await send_embed(ctx=ctx, embed=embed)
+                return
             except Exception as err:
                 logger.exception(err)
                 await send_embed(
@@ -146,6 +125,56 @@ class Admin(commands.Cog):
                     color=discord.Color.red(),
                     image_url=BOT_ERROR_GIF,
                 )
+                return
+
+            embed = discord.Embed(
+                title="System Info",
+                description="Showing my host hardware/software information",
+                colour=discord.Color.gold(),
+            )
+            embed.set_footer(text="Hope that was helpful, bye!")
+            embed.set_author(name=BOT_NAME, icon_url=self.bot.user.display_avatar.url)
+            if ctx.guild and ctx.guild.icon:
+                embed.set_thumbnail(url=ctx.guild.icon.url)
+
+            for line in output.stdout.splitlines():
+                name, sep, value = line.partition(":")
+                name, value = name.strip(), value.strip()
+                # skip non "key: value" lines and empty values (Discord rejects them)
+                if not sep or not name or not value:
+                    continue
+                # embeds allow at most 25 fields; leave room for the Pi extras
+                if len(embed.fields) >= 23:
+                    break
+                inline = name not in ("OS", "Host")
+                embed.add_field(name=name, value=value, inline=inline)
+
+            # Raspberry Pi only extras
+            if os.uname()[1] == "anton":
+                await self._add_pi_extras(embed)
+
+            await send_embed(ctx=ctx, embed=embed)
+
+    async def _add_pi_extras(self, embed: discord.Embed) -> None:
+        """Add Raspberry Pi specific fields (CPU temp, public url) to the embed"""
+        try:
+            temp = subprocess.run(
+                ["/opt/vc/bin/vcgencmd", "measure_temp"],
+                capture_output=True,
+                text=True,
+            )
+            _, sep, value = temp.stdout.partition("=")
+            if sep and value.strip():
+                embed.add_field(name="CPU Temp", value=value.strip(), inline=True)
+        except Exception as err:
+            logger.exception(err)
+
+        try:
+            url = await Admin.get_public_url()
+            if url:
+                embed.add_field(name="Public URL", value=url, inline=False)
+        except Exception as err:
+            logger.exception(err)
 
     @commands.command(hidden=True)
     @commands.is_owner()

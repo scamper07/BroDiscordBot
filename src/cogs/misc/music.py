@@ -2,7 +2,7 @@ from asyncio import sleep
 
 import discord
 from discord.ext import commands
-from youtube_dl import YoutubeDL
+from yt_dlp import YoutubeDL
 
 from base_logger import logger
 from utility import send_embed
@@ -19,7 +19,13 @@ class Music(commands.Cog):
         self.is_playing = False
         # queue of [song, voice_channel] entries
         self.music_queue = []
-        self.YDL_OPTIONS = {"format": "bestaudio", "noplaylist": "True"}
+        self.YDL_OPTIONS = {
+            "format": "bestaudio/best",
+            "noplaylist": True,
+            "quiet": True,
+            "no_warnings": True,
+            "default_search": "ytsearch",
+        }
         self.FFMPEG_OPTIONS = {
             "before_options": (
                 "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
@@ -35,12 +41,12 @@ class Music(commands.Cog):
         with YoutubeDL(self.YDL_OPTIONS) as ydl:
             try:
                 full = ydl.extract_info(f"ytsearch:{item}", download=False)
-                logger.debug(full)
-                info = full["entries"][0]
-            except Exception:
+                info = full["entries"][0] if "entries" in full else full
+            except Exception as err:
+                logger.exception(err)
                 return False
 
-        return {"source": info["formats"][0]["url"], "title": info["title"]}
+        return {"source": info["url"], "title": info["title"]}
 
     def play_next(self, ctx):
         """Plays the next song in the queue (callback after a song finishes)"""

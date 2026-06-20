@@ -68,8 +68,8 @@ async def send_embed(
 
     if image_url:
         embed.set_image(url=image_url)
-    if not embed.footer.text:
-        embed.set_footer(text=f"Powered by discord.py v{discord.__version__}")
+    # if not embed.footer.text:
+    #    embed.set_footer(text=f"Powered by discord.py v{discord.__version__}")
 
     target = ctx.author if dm else ctx
     await target.send(embed=embed)
