@@ -1,10 +1,10 @@
+import asyncio
+import random
 from typing import Literal
 
-import aiohttp
 from discord.ext import commands
 
 from base_logger import logger
-from constants import TICTACTOE_API_URL
 from utility import send_embed
 
 DOT = ":white_medium_small_square:"
@@ -79,6 +79,60 @@ class TTT:
             return
 
         return False
+
+    def available_moves(self):
+        """Return the list of empty (row, col) coordinates"""
+        return [(r, c) for r in range(3) for c in range(3) if self.board[r][c] == "."]
+
+    def _winner(self):
+        """Return 'X'/'O' for a winner, 'draw' for a full board, else None"""
+        result = self.hasWon(self.board)
+        if result:
+            return result[1]
+        if result is None:
+            return "draw"
+        return None
+
+    def _minimax(self, is_computer_turn):
+        """Score the current board from the computer's perspective"""
+        winner = self._winner()
+        if winner == self.computer:
+            return 1
+        if winner == self.player:
+            return -1
+        if winner == "draw":
+            return 0
+
+        mark = self.computer if is_computer_turn else self.player
+        scores = []
+        for r, c in self.available_moves():
+            self.board[r][c] = mark
+            scores.append(self._minimax(not is_computer_turn))
+            self.board[r][c] = "."
+        return max(scores) if is_computer_turn else min(scores)
+
+    def best_move(self):
+        """Pick the computer's next move based on the configured difficulty"""
+        moves = self.available_moves()
+        if not moves:
+            return None
+
+        # easy always plays randomly; medium plays randomly half the time
+        if self.difficulty == "easy" or (
+            self.difficulty == "medium" and random.random() < 0.5
+        ):
+            return random.choice(moves)
+
+        # otherwise play the optimal (unbeatable) move
+        best_score = None
+        best = moves[0]
+        for r, c in moves:
+            self.board[r][c] = self.computer
+            score = self._minimax(False)
+            self.board[r][c] = "."
+            if best_score is None or score > best_score:
+                best_score, best = score, (r, c)
+        return best
 
 
 class Tictactoe(commands.Cog):
@@ -177,16 +231,10 @@ class Tictactoe(commands.Cog):
             self.bot_thinking = False
 
     async def _computer_move(self, channel, game, guild_id):
-        post_data = {
-            "positions": game.board,
-            "player": "X",
-            "difficulty": game.difficulty,
-        }
-        async with aiohttp.ClientSession() as session:
-            async with session.post(TICTACTOE_API_URL, json=post_data) as resp:
-                move = (await resp.json()).get("move")
+        # run the minimax search off the event loop so the bot stays responsive
+        move = await asyncio.to_thread(game.best_move)
         if move:
-            game.board[int(move[0])][int(move[1])] = game.computer
+            game.board[move[0]][move[1]] = game.computer
             await channel.send(game.beautify_board())
             self.bot_thinking = False
             await self._check_end(channel, game, guild_id, computer=True)

@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 
 from constants import (
-    BOT_CREATOR_NAME,
     BOT_GITHUB_URL,
     BOT_NAME,
     COMMAND_PREFIX,
@@ -49,8 +48,7 @@ class Help(commands.Cog):
         # adding info about creator
         embed.add_field(
             name="About",
-            value=f"This bot is developed by {BOT_CREATOR_NAME}"
-            f"\nVisit {BOT_GITHUB_URL} to submit ideas or issues.",
+            value=f"\nVisit {BOT_GITHUB_URL} to submit ideas or issues.",
         )
 
         embed.set_author(name=BOT_NAME, icon_url=self.bot.user.display_avatar.url)

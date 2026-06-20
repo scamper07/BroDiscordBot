@@ -54,11 +54,11 @@ class General(commands.Cog):
 
     @commands.hybrid_command(description="Bro shares a random fact")
     async def fact(self, ctx: commands.Context) -> None:
-        """Sends out a random useless fact"""
+        """Sends out a random fact"""
         async with ctx.typing():
             data = await fetch_json(FACT_API_URL)
-            if data:
-                await send_embed(ctx=ctx, title=data["text"])
+            if data and data.get("fact"):
+                await send_embed(ctx=ctx, title=data["fact"])
             else:
                 await UtilGeneral.send_error(ctx)
 
@@ -67,7 +67,7 @@ class General(commands.Cog):
         """Sends out a random advice"""
         async with ctx.typing():
             data = await fetch_json(ADVICE_API_URL)
-            if data:
+            if data and data.get("slip"):
                 await send_embed(ctx=ctx, title=data["slip"]["advice"])
             else:
                 await UtilGeneral.send_error(ctx)
@@ -77,7 +77,7 @@ class General(commands.Cog):
         """Sends out a random insult"""
         async with ctx.typing():
             data = await fetch_json(INSULT_API_URL)
-            if data:
+            if data and data.get("insult"):
                 await send_embed(ctx=ctx, title=data["insult"])
             else:
                 await UtilGeneral.send_error(ctx)
@@ -87,6 +87,14 @@ class General(commands.Cog):
         """Sends out the top news headlines"""
         async with ctx.typing():
             news_api_key = get_secret("NEWS_API")
+            if not news_api_key:
+                await send_embed(
+                    ctx=ctx,
+                    title="News is not configured (set NEWS_API)",
+                    color=discord.Color.red(),
+                    image_url=BOT_ERROR_GIF,
+                )
+                return
             data = await fetch_json(NEWS_API_URL.format(news_api_key))
             if data and data.get("articles"):
                 headlines = ""
