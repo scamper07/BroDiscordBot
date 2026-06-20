@@ -1,3 +1,4 @@
+import asyncio
 from asyncio import sleep
 
 import discord
@@ -25,7 +26,12 @@ class Music(commands.Cog):
             "quiet": True,
             "no_warnings": True,
             "default_search": "ytsearch",
+            # alternative player clients avoid most "Sign in to confirm you're
+            # not a bot" blocks that YouTube applies to the default web client
+            "extractor_args": {"youtube": {"player_client": ["android", "web"]}},
         }
+        # remember why the last search failed so the command can report it
+        self.last_error = None
         self.FFMPEG_OPTIONS = {
             "before_options": (
                 "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
@@ -38,12 +44,14 @@ class Music(commands.Cog):
 
     def search_yt(self, item):
         """Searches youtube for the given query and returns the first result"""
+        self.last_error = None
         with YoutubeDL(self.YDL_OPTIONS) as ydl:
             try:
                 full = ydl.extract_info(f"ytsearch:{item}", download=False)
                 info = full["entries"][0] if "entries" in full else full
             except Exception as err:
                 logger.exception(err)
+                self.last_error = str(err)
                 return False
 
         return {"source": info["url"], "title": info["title"]}
@@ -111,11 +119,11 @@ class Music(commands.Cog):
             await send_embed(ctx=ctx, title="Join voice channel and try again")
             return
 
-        song = self.search_yt(query)
+        # run the blocking yt-dlp search off the event loop
+        song = await asyncio.to_thread(self.search_yt, query)
         if song is False:
-            await send_embed(
-                ctx=ctx, title="Could not play song, try different keyword"
-            )
+            detail = self.last_error or "try a different keyword"
+            await send_embed(ctx=ctx, title=f"Could not play song: {detail}"[:256])
             return
 
         if self.music_queue:
