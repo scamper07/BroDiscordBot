@@ -34,7 +34,7 @@ COGS = [
     "cogs.games.quiz",
     "cogs.games.tictactoe",
     "cogs.games.tlto",
-    "cogs.games.gameboy",
+    # "cogs.games.gameboy",
     "cogs.games.terraria",
 ]
 
